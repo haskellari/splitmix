@@ -1,0 +1,84 @@
+name:		splitmix
+version:	0
+synopsis:	Fast Splittable PRNG
+description:
+  Pure Haskell implementation of SplitMix described in
+  .
+  Guy L. Steele, Jr., Doug Lea, and Christine H. Flood. 2014.
+  Fast splittable pseudorandom number generators. In Proceedings
+  of the 2014 ACM International Conference on Object Oriented
+  Programming Systems Languages & Applications (OOPSLA '14). ACM,
+  New York, NY, USA, 453-472. DOI:
+  <https://doi.org/10.1145/2660193.2660195>
+license:	BSD3
+license-file:	LICENSE
+maintainer:	Oleg Grenrus <oleg.grenrus@iki.fi>
+bug-reports:	https://github.com/phadej/splitmix#issues
+category:       System
+build-type:     Simple
+cabal-version:  >= 1.10
+tested-with:
+  GHC==7.6.3,
+  GHC==7.8.4,
+  GHC==7.10.3,
+  GHC==8.0.2,
+  GHC==8.2.1
+
+extra-source-files:
+  README.md
+
+library
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   src
+  exposed-modules:
+    System.Random.SplitMix
+  build-depends:
+    base   >=4.5     && <4.11,
+    time   >=1.4.0.1 && <1.9,
+    random >=1.1     && <1.2
+
+  -- dump-core
+  -- build-depends: dump-core
+  -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
+
+source-repository head
+  type:     git
+  location: https://github.com/phadej/splitmix.git
+
+benchmark comparison
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   bench
+  main-is:          Bench.hs
+  build-depends:
+    base,
+    containers,
+    splitmix,
+    random,
+    tf-random,
+    criterion
+
+test-suite montecarlo-pi
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   tests
+  main-is:          SplitMixPi.hs
+  build-depends:
+    base,
+    splitmix
+
+test-suite dieharder-input
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   tests
+  main-is:          Dieharder.hs
+  build-depends:
+    base,
+    bytestring,
+    splitmix,
+    random,
+    tf-random
