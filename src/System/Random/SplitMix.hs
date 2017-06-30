@@ -11,15 +11,17 @@ module System.Random.SplitMix (
     splitSMGen,
     -- * Initialisation
     mkSMGen,
-    seedSMGen,
     initSMGen,
     newSMGen,
+    seedSMGen,
+    seedSMGen',
+    unseedSMGen,
     ) where
 
 import Data.Bits (popCount, shiftL, shiftR, xor, (.|.))
-import Data.Word (Word64, Word32)
 import Data.IORef (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Data.Word (Word64, Word32)
 import System.CPUTime (getCPUTime, cpuTimePrecision)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -136,6 +138,14 @@ seedSMGen
     -> Word64 -- ^ gamma
     -> SMGen
 seedSMGen seed gamma = SMGen seed (gamma .|. 1)
+
+-- | Like 'seedSMGen' but takes a pair.
+seedSMGen' :: (Word64, Word64) -> SMGen
+seedSMGen' = uncurry seedSMGen
+
+-- | Extract current state of 'SMGen'.
+unseedSMGen :: SMGen -> (Word64, Word64)
+unseedSMGen (SMGen seed gamma) = (seed, gamma)
 
 -- | Preferred way to deterministically construct 'SMGen'.
 mkSMGen :: Word64 -> SMGen
