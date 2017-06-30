@@ -1,5 +1,8 @@
 module Main (main) where
 
+import Prelude
+import Prelude.Compat
+
 import Data.List (unfoldr)
 import System.Environment (getArgs)
 import System.IO (stdout)

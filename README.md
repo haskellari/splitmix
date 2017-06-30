@@ -20,8 +20,8 @@ time dieharder-input splitmix | dieharder -a -g 200
 The test-suite takes around half-an-hour to complete.
 All tests are PASSED (occasionally WEAK).
 
-In comparison built-in [Marsenne Twister](https://en.wikipedia.org/wiki/Mersenne_Twister)
- test takes ???.
+In comparison, built-in [Marsenne Twister](https://en.wikipedia.org/wiki/Mersenne_Twister)
+test takes around 15min.
 
 ```
 time dieharder-input -a
