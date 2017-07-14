@@ -30,46 +30,47 @@ time dieharder-input -a
 ## benchmarks
 
 ```
-benchmarking list/random
-time                 96.77 μs   (96.28 μs .. 97.35 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 96.77 μs   (96.35 μs .. 97.63 μs)
-std dev              2.001 μs   (1.028 μs .. 3.796 μs)
-variance introduced by outliers: 15% (moderately inflated)
+benchmarking list 64/random
+time                 1.317 ms   (1.303 ms .. 1.335 ms)
+                     0.998 R²   (0.998 R² .. 0.999 R²)
+mean                 1.380 ms   (1.365 ms .. 1.411 ms)
+std dev              70.83 μs   (37.26 μs .. 131.8 μs)
+variance introduced by outliers: 39% (moderately inflated)
 
-benchmarking list/tf-random
-time                 60.43 μs   (60.12 μs .. 60.79 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 60.52 μs   (60.26 μs .. 60.91 μs)
-std dev              1.120 μs   (780.2 ns .. 1.513 μs)
-variance introduced by outliers: 14% (moderately inflated)
+benchmarking list 64/tf-random
+time                 141.1 μs   (140.4 μs .. 142.1 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 145.9 μs   (144.6 μs .. 150.4 μs)
+std dev              7.131 μs   (3.461 μs .. 14.75 μs)
+variance introduced by outliers: 49% (moderately inflated)
 
-benchmarking list/splitmix
-time                 16.38 μs   (16.29 μs .. 16.47 μs)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 16.34 μs   (16.25 μs .. 16.51 μs)
-std dev              386.8 ns   (201.5 ns .. 669.8 ns)
-variance introduced by outliers: 24% (moderately inflated)
+benchmarking list 64/splitmix
+time                 17.86 μs   (17.72 μs .. 18.01 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 17.95 μs   (17.75 μs .. 18.47 μs)
+std dev              1.000 μs   (444.1 ns .. 1.887 μs)
+variance introduced by outliers: 64% (severely inflated)
 
-benchmarking tree/random
-time                 115.4 μs   (108.6 μs .. 126.0 μs)
-                     0.942 R²   (0.910 R² .. 0.977 R²)
-mean                 116.0 μs   (110.3 μs .. 124.2 μs)
-std dev              23.47 μs   (16.60 μs .. 33.95 μs)
-variance introduced by outliers: 95% (severely inflated)
+benchmarking tree 64/random
+time                 800.3 μs   (793.3 μs .. 806.5 μs)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 803.2 μs   (798.1 μs .. 811.2 μs)
+std dev              22.09 μs   (14.69 μs .. 35.47 μs)
+variance introduced by outliers: 18% (moderately inflated)
 
-benchmarking tree/tf-random
-time                 132.4 μs   (132.2 μs .. 132.5 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 132.5 μs   (132.3 μs .. 132.6 μs)
-std dev              403.3 ns   (323.0 ns .. 516.5 ns)
+benchmarking tree 64/tf-random
+time                 179.0 μs   (176.6 μs .. 180.7 μs)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 172.7 μs   (171.3 μs .. 174.6 μs)
+std dev              5.590 μs   (4.919 μs .. 6.382 μs)
+variance introduced by outliers: 29% (moderately inflated)
 
-benchmarking tree/splitmix
-time                 59.80 μs   (59.42 μs .. 60.15 μs)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 59.61 μs   (59.26 μs .. 60.36 μs)
-std dev              1.683 μs   (864.5 ns .. 3.206 μs)
-variance introduced by outliers: 27% (moderately inflated)
+benchmarking tree 64/splitmix
+time                 51.54 μs   (51.01 μs .. 52.15 μs)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 52.50 μs   (51.93 μs .. 53.55 μs)
+std dev              2.603 μs   (1.659 μs .. 4.338 μs)
+variance introduced by outliers: 55% (severely inflated)
 ```
 
 Note: the performance can be potentially further improved when GHC gets
