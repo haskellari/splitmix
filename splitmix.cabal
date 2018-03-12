@@ -1,6 +1,7 @@
-name:		splitmix
-version:	0
-synopsis:	Fast Splittable PRNG
+name:           splitmix
+version:        0
+x-revision:     1
+synopsis:       Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
   .
@@ -10,10 +11,10 @@ description:
   Programming Systems Languages & Applications (OOPSLA '14). ACM,
   New York, NY, USA, 453-472. DOI:
   <https://doi.org/10.1145/2660193.2660195>
-license:	BSD3
-license-file:	LICENSE
-maintainer:	Oleg Grenrus <oleg.grenrus@iki.fi>
-bug-reports:	https://github.com/phadej/splitmix#issues
+license:        BSD3
+license-file:   LICENSE
+maintainer:     Oleg Grenrus <oleg.grenrus@iki.fi>
+bug-reports:    https://github.com/phadej/splitmix#issues
 category:       System
 build-type:     Simple
 cabal-version:  >= 1.10
@@ -35,7 +36,7 @@ library
   exposed-modules:
     System.Random.SplitMix
   build-depends:
-    base   >=4.5     && <4.11,
+    base   >=4.5     && <4.12,
     time   >=1.4.0.1 && <1.9,
     random >=1.1     && <1.2
 
@@ -59,7 +60,7 @@ benchmark comparison
     random,
     containers >=0.5     && <0.6,
     tf-random  >=0.5     && <0.6,
-    criterion  >=1.1.0.0 && <1.4
+    criterion  >=1.1.0.0 && <1.5
 
 test-suite montecarlo-pi
   type:             exitcode-stdio-1.0
