@@ -69,15 +69,6 @@ nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
   where
     seed' = seed + gamma
 
--- Here, and in splitSMGen, "inlining" of nextSeed is worth doing.
--- I looked at the Core.
-{-
-nextWord64 :: SMGen -> (Word64, SMGen)
-nextWord64 g0 = (mix64 x, g1)
-  where
-    (x, g1) = nextSeed g0
--}
-
 -- | Generate an 'Int'.
 nextInt :: SMGen -> (Int, SMGen)
 nextInt g = case nextWord64 g of
@@ -96,14 +87,6 @@ splitSMGen (SMGen seed gamma) =
     seed'  = seed + gamma
     seed'' = seed' + gamma
 
-{-
-splitSMGen :: SMGen -> (SMGen, SMGen)
-splitSMGen g0 = (g2, SMGen (mix64 x) (mixGamma y))
-  where
-    (x, g1) = nextSeed g0
-    (y, g2) = nextSeed g1
--}
-
 -------------------------------------------------------------------------------
 -- Algorithm
 -------------------------------------------------------------------------------
@@ -113,13 +96,6 @@ goldenGamma = 0x9e3779b97f4a7c15
 
 doubleUlp :: Double
 doubleUlp =  1.0 / fromIntegral (1 `shiftL` 53 :: Word64)
-
-{-
-nextSeed :: SMGen -> (Word64, SMGen)
-nextSeed (SMGen seed gamma) = (seed', SMGen seed' gamma)
-  where
-    seed' = seed + gamma
--}
 
 -- Note: in JDK implementations the mix64 and mix64variant13
 -- (which is inlined into mixGamma) are swapped.
