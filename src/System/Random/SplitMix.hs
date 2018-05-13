@@ -121,6 +121,13 @@ nextSeed (SMGen seed gamma) = (seed', SMGen seed' gamma)
     seed' = seed + gamma
 -}
 
+-- Note: in JDK implementations the mix64 and mix64variant13
+-- (which is inlined into mixGamma) are swapped.
+--
+-- It's easy to verify which constants are from MurmurHash3.
+-- See the link.
+--
+-- I have no idea if swapping them affects statistical properties.
 mix64 :: Word64 -> Word64
 mix64 z0 =
     let z1 = shiftXorMultiply 33 0xc4ceb9fe1a85ec53 z0
@@ -128,20 +135,25 @@ mix64 z0 =
         z3 = shiftXor 33 z2
     in z3
 
+-- used only in mixGamma
 mix64variant13 :: Word64 -> Word64
 mix64variant13 z0 =
-    let z1 = shiftXorMultiply 30 0xbf58476d1ce4e5b9 z0
+   -- Better Bit Mixing - Improving on MurmurHash3's 64-bit Finalizer
+   -- http://zimbry.blogspot.fi/2011/09/better-bit-mixing-improving-on.html
+    let z1 = shiftXorMultiply 30 0xbf58476d1ce4e5b9 z0 -- MurmurHash3 mix constants
         z2 = shiftXorMultiply 27 0x94d049bb133111eb z1
         z3 = shiftXor 31 z2
     in z3
 
 mixGamma :: Word64 -> Word64
 mixGamma z0 =
-    let z1 = mix64variant13 z0 .|. 1
+    let z1 = mix64variant13 z0 .|. 1             -- force to be odd
         n  = popCount (z1 `xor` (z1 `shiftR` 1))
+    -- see: http://www.pcg-random.org/posts/bugs-in-splitmix.html
+    -- let's trust the text of the paper, not the code.
     in if n >= 24
-        then z1 `xor` 0xaaaaaaaaaaaaaaaa
-        else z1
+        then z1
+        else z1 `xor` 0xaaaaaaaaaaaaaaaa
 
 shiftXor :: Int -> Word64 -> Word64
 shiftXor n w = w `xor` (w `shiftR` n)
