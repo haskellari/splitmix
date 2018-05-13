@@ -1,11 +1,12 @@
 module Main (main) where
 
-import Prelude
+import Prelude ()
 import Prelude.Compat
 
 import Data.List (unfoldr)
 import System.Environment (getArgs)
 import System.IO (stdout)
+import Data.Word (Word64)
 
 import qualified Data.ByteString.Builder as B
 import qualified System.Random.SplitMix as SM
@@ -17,14 +18,17 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["splitmix"] -> splitmix
-        ["tfrandom"] -> tfrandom
+        ["splitmix"]      -> splitmix Nothing
+        ["splitmix", arg] -> splitmix (Just (read arg))
+        ["tfrandom"]      -> tfrandom
         ["splitmix-tree"] -> splitmixTree
         _ -> return ()
 
-splitmix :: IO ()
-splitmix = SM.initSMGen >>= B.hPutBuilder stdout . go
+splitmix :: Maybe Word64 -> IO ()
+splitmix seed = smgen >>= B.hPutBuilder stdout . go
   where
+    smgen = maybe SM.initSMGen (return . SM.mkSMGen) seed
+
     go :: SM.SMGen -> B.Builder
     go g = case SM.nextWord64 g of 
         ~(w64, g') -> B.word64LE w64 `mappend` go g'
