@@ -14,7 +14,7 @@ sequences of random numbers &ndash; at exactly the right average rate. Testing a
 is therefore quite subtle.
 
 ```
-time $(cabal-plan list-bin dieharder-input) splitmix | dieharder -a -g 200
+time $(cabal-plan list-bin splitmix-dieharder) splitmix
 ```
 
 The test-suite takes around half-an-hour to complete.
@@ -24,7 +24,7 @@ In comparison, built-in [Marsenne Twister](https://en.wikipedia.org/wiki/Mersenn
 test takes around 15min.
 
 ```
-time dieharder-input -a
+time dieharder -a
 ```
 
 ## benchmarks
