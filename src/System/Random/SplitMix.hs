@@ -100,14 +100,12 @@ doubleUlp =  1.0 / fromIntegral (1 `shiftL` 53 :: Word64)
 -- Note: in JDK implementations the mix64 and mix64variant13
 -- (which is inlined into mixGamma) are swapped.
 --
--- It's easy to verify which constants are from MurmurHash3.
--- See the link.
---
 -- I have no idea if swapping them affects statistical properties.
 mix64 :: Word64 -> Word64
 mix64 z0 =
-    let z1 = shiftXorMultiply 33 0xc4ceb9fe1a85ec53 z0
-        z2 = shiftXorMultiply 33 0xff51afd7ed558ccd z1
+   -- MurmurHash3Mixer
+    let z1 = shiftXorMultiply 33 0xff51afd7ed558ccd z0
+        z2 = shiftXorMultiply 33 0xc4ceb9fe1a85ec53 z1
         z3 = shiftXor 33 z2
     in z3
 
