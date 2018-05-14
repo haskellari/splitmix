@@ -18,7 +18,7 @@ time $(cabal-plan list-bin splitmix-dieharder) splitmix
 ```
 
 The test-suite takes around half-an-hour to complete.
-All tests are PASSED (occasionally WEAK).
+From 30 runs, 2.49% were weak (3247 passed, 83 weak, 0 failed).
 
 In comparison, built-in [Marsenne Twister](https://en.wikipedia.org/wiki/Mersenne_Twister)
 test takes around 15min.

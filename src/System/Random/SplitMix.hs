@@ -39,12 +39,13 @@ module System.Random.SplitMix (
     unseedSMGen,
     ) where
 
-import Data.Bits (popCount, shiftL, shiftR, xor, (.|.))
-import Data.IORef (IORef, atomicModifyIORef, newIORef)
+import Control.DeepSeq       (NFData (..))
+import Data.Bits             (popCount, shiftL, shiftR, xor, (.|.))
+import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
-import Data.Word (Word64, Word32)
-import System.CPUTime (getCPUTime, cpuTimePrecision)
-import System.IO.Unsafe (unsafePerformIO)
+import Data.Word             (Word32, Word64)
+import System.CPUTime        (cpuTimePrecision, getCPUTime)
+import System.IO.Unsafe      (unsafePerformIO)
 
 import qualified System.Random as R
 
@@ -58,6 +59,9 @@ data SMGen = SMGen
     , _gamma :: !Word64  -- ^ always odd
     }
   deriving Show
+
+instance NFData SMGen where
+    rnf (SMGen _ _) = ()
 
 -------------------------------------------------------------------------------
 -- Operations

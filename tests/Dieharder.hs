@@ -1,4 +1,6 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
 import Prelude ()
@@ -6,25 +8,28 @@ import Prelude.Compat
 
 import Control.Concurrent.QSem
 import Control.DeepSeq         (force)
+import Data.Bits               (shiftL, (.|.))
 import Data.List               (isInfixOf, unfoldr)
 import Data.Maybe              (fromMaybe)
-import Data.Traversable        (for)
 import Data.Word               (Word64)
 import Foreign.C               (Errno (..), ePIPE)
+import Foreign.Ptr             (castPtr)
 import GHC.IO.Exception        (IOErrorType (..), IOException (..))
 import System.Environment      (getArgs)
 import System.IO               (Handle, hGetContents)
 import Text.Read               (readMaybe)
+import Text.Printf (printf)
 
-import qualified Control.Concurrent.Async as A
-
-import qualified Control.Exception       as E
-import qualified Data.ByteString.Builder as B
-import qualified System.Process          as Proc
-import qualified System.Random.SplitMix  as SM
-import qualified System.Random.TF        as TF
-import qualified System.Random.TF.Gen    as TF
-import qualified System.Random.TF.Init   as TF
+import qualified Control.Concurrent.Async     as A
+import qualified Control.Exception            as E
+import qualified Data.ByteString              as BS
+import qualified Data.ByteString.Unsafe       as BS (unsafePackCStringLen)
+import qualified Data.Vector.Storable.Mutable as MSV
+import qualified System.Process               as Proc
+import qualified System.Random.SplitMix       as SM
+import qualified System.Random.TF             as TF
+import qualified System.Random.TF.Gen         as TF
+import qualified System.Random.TF.Init        as TF
 
 main :: IO ()
 main = do
@@ -40,21 +45,46 @@ main = do
             <*> opt "-d"
             <*> flag "-h"
 
-        let mgen = case cmd of
-              "splitmix"      -> Just $ splitmix seed
-              "tfrandom"      -> Just tfrandom
-              "splitmix-tree" -> Just splitmixTree
-              _               -> Nothing
+        case cmd of
+              "splitmix"      -> do
+                  g <- maybe SM.initSMGen (return . SM.mkSMGen) seed
+                  run test runs conc SM.splitSMGen SM.nextWord64 g
+              "tfrandom"      -> do
+                  g <- TF.initTFGen
+                  run test runs conc TF.split tfNext64 g
+              _               -> return ()
 
-        qsem <- newQSem conc
+tfNext64 :: TF.TFGen -> (Word64, TF.TFGen)
+tfNext64 g =
+    let (w, g')   = TF.next g
+        (w', g'') = TF.next g'
+    in (fromIntegral w `shiftL` 32 .|. fromIntegral w', g'')
 
-        res <- for mgen $ \gen -> do
-            rs <- A.forConcurrently (replicate runs ()) $ \() ->
-                E.bracket_ (waitQSem qsem) (signalQSem qsem) $
-                    dieharder test gen
-            return $ mconcat rs
+-------------------------------------------------------------------------------
+-- Dieharder
+-------------------------------------------------------------------------------
 
-        print res
+run :: Maybe Int
+    -> Int
+    -> Int
+    -> (g -> (g, g))
+    -> (g -> (Word64, g))
+    -> g
+    -> IO ()
+run test runs conc split word gen = do
+    qsem <- newQSem conc
+
+    rs <- A.forConcurrently (take runs $ unfoldr (Just . split) gen) $ \g ->
+        E.bracket_ (waitQSem qsem) (signalQSem qsem) $
+            dieharder test (generate word g)
+
+    case mconcat rs of
+        Result p w f -> do
+            let total = fromIntegral (p + w + f) :: Double
+            printf "PASSED %4d %6.02f%%\n" p (fromIntegral p / total * 100)
+            printf "WEAK   %4d %6.02f%%\n" w (fromIntegral w / total * 100)
+            printf "FAILED %4d %6.02f%%\n" f (fromIntegral f / total * 100)
+{-# INLINE run #-}
 
 dieharder :: Maybe Int -> (Handle -> IO ()) -> IO Result
 dieharder test gen = do
@@ -76,6 +106,7 @@ dieharder test gen = do
     _ <- Proc.waitForProcess ph
 
     return $ parseOutput res
+{-# INLINE dieharder #-}
 
 parseOutput :: String -> Result
 parseOutput = foldMap parseLine . lines where
@@ -87,6 +118,10 @@ parseOutput = foldMap parseLine . lines where
         | otherwise = mempty
 
     doNotUse = ["diehard_opso", "diehard_oqso", "diehard_dna", "diehard_weak"]
+
+-------------------------------------------------------------------------------
+-- Results
+-------------------------------------------------------------------------------
 
 data Result = Result
     { _passed :: Int
@@ -103,34 +138,33 @@ instance Monoid Result where
     mappend = (<>)
 
 -------------------------------------------------------------------------------
--- Generators
+-- Writer
 -------------------------------------------------------------------------------
 
-splitmix :: Maybe Word64 -> Handle -> IO ()
-splitmix seed h = smgen >>= B.hPutBuilder h . go
+size :: Int
+size = 512
+
+generate :: forall g. (g -> (Word64, g)) -> g -> Handle -> IO ()
+generate word gen0 h = do
+    vec <- MSV.new size
+    go gen0 vec
   where
-    smgen = maybe SM.initSMGen (return . SM.mkSMGen) seed
+    go :: g -> MSV.IOVector Word64 -> IO ()
+    go gen vec = do
+        gen' <- write gen vec 0
+        MSV.unsafeWith vec $ \ptr -> do
+            bs <- BS.unsafePackCStringLen (castPtr ptr, size * 8)
+            BS.hPutStr h bs
+        go gen' vec
 
-    go :: SM.SMGen -> B.Builder
-    go g = case SM.nextWord64 g of
-        ~(w64, g') -> B.word64LE w64 `mappend` go g'
-
-splitmixTree :: Handle -> IO ()
-splitmixTree h = SM.initSMGen >>= B.hPutBuilder h . go
-  where
-    go :: SM.SMGen -> B.Builder
-    go g = case SM.splitSMGen g of
-        ~(ga, gb) -> builder 8 ga `mappend` go gb
-
-    builder :: Int -> SM.SMGen -> B.Builder
-    builder n = mconcat . take n . map B.word64LE . unfoldr (Just . SM.nextWord64)
-
-tfrandom :: Handle -> IO ()
-tfrandom h = TF.initTFGen >>= B.hPutBuilder h . go
-  where
-    go :: TF.TFGen -> B.Builder
-    go g = case TF.next g of
-        ~(w32, g') -> B.word32LE w32 `mappend` go g'
+    write :: g -> MSV.IOVector Word64 -> Int -> IO g
+    write !gen !vec !i = do
+        let (w64, gen') = word gen
+        MSV.unsafeWrite vec i w64
+        if i < size
+        then write gen' vec (i + 1)
+        else return gen'
+{-# INLINE generate #-}
 
 -------------------------------------------------------------------------------
 -- Do it yourself command line parsing
