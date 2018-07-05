@@ -77,7 +77,7 @@ benchmark comparison
     random,
     containers >=0.5     && <0.6,
     tf-random  >=0.5     && <0.6,
-    criterion  >=1.1.0.0 && <1.5
+    criterion  >=1.1.0.0 && <1.6
 
 test-suite montecarlo-pi
   type:             exitcode-stdio-1.0
