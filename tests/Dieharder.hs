@@ -9,6 +9,7 @@ import Prelude.Compat
 import Control.Concurrent.QSem
 import Control.DeepSeq         (force)
 import Data.Bits               (shiftL, (.|.))
+import Data.Char               (isSpace)
 import Data.List               (isInfixOf, unfoldr)
 import Data.Maybe              (fromMaybe)
 import Data.Word               (Word64)
@@ -17,8 +18,7 @@ import Foreign.Ptr             (castPtr)
 import GHC.IO.Exception        (IOErrorType (..), IOException (..))
 import System.Environment      (getArgs)
 import System.IO               (Handle, hGetContents)
-import Text.Read               (readMaybe)
-import Text.Printf (printf)
+import Text.Printf             (printf)
 
 import qualified Control.Concurrent.Async     as A
 import qualified Control.Exception            as E
@@ -166,6 +166,21 @@ generate word gen0 h = do
         else return gen'
 {-# INLINE generate #-}
 
+-------------------------------------------------------------------------------
+-- readMaybe
+-------------------------------------------------------------------------------
+
+readEither :: Read a => String -> Either String a
+readEither s =
+  case [ x | (x,rest) <- reads s, all isSpace rest ] of
+    [x] -> Right x
+    []  -> Left "Prelude.read: no parse"
+    _   -> Left "Prelude.read: ambiguous parse"
+
+readMaybe :: Read a => String -> Maybe a
+readMaybe s = case readEither s of
+                Left _  -> Nothing
+                Right a -> Just a
 -------------------------------------------------------------------------------
 -- Do it yourself command line parsing
 -------------------------------------------------------------------------------
