@@ -7,7 +7,7 @@ doubles :: SMGen -> [Double]
 doubles = unfoldr (Just . nextDouble)
 
 monteCarloPi :: SMGen -> Double
-monteCarloPi = (4 *) . calc . foldl' accum (P 0 0) . take 10000000 . pairs . doubles
+monteCarloPi = (4 *) . calc . foldl' accum (P 0 0) . take 50000000 . pairs . doubles
   where
     calc (P n m) = fromIntegral n / fromIntegral m
 
