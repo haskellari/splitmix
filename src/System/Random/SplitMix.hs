@@ -69,25 +69,51 @@ popCount = go 0
    go c w = go (c+1) (w .&. (w - 1)) -- clear the least significant
 #endif
 
+-- $setup
+-- >>> import Text.Read (readMaybe)
+-- >>> import Data.List (unfoldr)
+-- >>> import Text.Printf (printf)
+
 -------------------------------------------------------------------------------
 -- Generator
 -------------------------------------------------------------------------------
 
 -- | SplitMix generator state.
-data SMGen = SMGen
-    { _seed  :: !Word64
-    , _gamma :: !Word64  -- ^ always odd
-    }
+data SMGen = SMGen !Word64 !Word64 -- seed and gamma; gamma is odd
   deriving Show
 
 instance NFData SMGen where
     rnf (SMGen _ _) = ()
+
+-- |
+--
+-- >>> readMaybe "SMGen 1 1" :: Maybe SMGen
+-- Just (SMGen 1 1)
+--
+-- >>> readMaybe "SMGen 1 2" :: Maybe SMGen
+-- Nothing
+--
+-- >>> readMaybe (show (mkSMGen 42)) :: Maybe SMGen
+-- Just (SMGen 9297814886316923340 13679457532755275413)
+--
+instance Read SMGen where
+    readsPrec d r =  readParen (d > 10) (\r0 ->
+      [ (SMGen seed gamma, r3)
+      | ("SMGen", r1) <- lex r0
+      , (seed, r2) <- readsPrec 11 r1
+      , (gamma, r3) <- readsPrec 11 r2
+      , odd gamma
+      ]) r
 
 -------------------------------------------------------------------------------
 -- Operations
 -------------------------------------------------------------------------------
 
 -- | Generate a 'Word64'.
+--
+-- >>> take 3 $ map (printf "%x") $ unfoldr (Just . nextWord64) (mkSMGen 1337) :: [String]
+-- ["b5c19e300e8b07b3","d600e0e216c0ac76","c54efc3b3cc5af29"]
+--
 nextWord64 :: SMGen -> (Word64, SMGen)
 nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
   where
@@ -99,13 +125,10 @@ nextInt g = case nextWord64 g of
     (w64, g') -> (fromIntegral w64, g')
 
 -- | Generate a 'Double' in @[0, 1)@ range.
-<<<<<<< HEAD
-=======
 --
 -- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextDouble) (mkSMGen 1337) :: [String]
 -- ["0.710","0.836","0.771","0.409","0.297","0.527","0.589","0.067"]
 --
->>>>>>> 17c77f7... fixup! Support GHC-7.0.4+
 nextDouble :: SMGen -> (Double, SMGen)
 nextDouble g = case nextWord64 g of
     (w64, g') -> (fromIntegral (w64 `shiftR` 11) * doubleUlp, g')
@@ -171,6 +194,10 @@ shiftXorMultiply n k w = shiftXor n w * k
 -------------------------------------------------------------------------------
 
 -- | Create 'SMGen' using seed and gamma.
+--
+-- >>> seedSMGen 2 2
+-- SMGen 2 3
+--
 seedSMGen
     :: Word64 -- ^ seed
     -> Word64 -- ^ gamma
@@ -186,6 +213,10 @@ unseedSMGen :: SMGen -> (Word64, Word64)
 unseedSMGen (SMGen seed gamma) = (seed, gamma)
 
 -- | Preferred way to deterministically construct 'SMGen'.
+--
+-- >>> mkSMGen 42
+-- SMGen 9297814886316923340 13679457532755275413
+--
 mkSMGen :: Word64 -> SMGen
 mkSMGen s = SMGen (mix64 s) (mixGamma (s + goldenGamma))
 
