@@ -1,3 +1,8 @@
+# 0.0.2
+
+- Support back to GHC-7.0
+- Add `Read SMGen` instance
+
 # 0.0.1
 
 - Add `NFData SMGen` instance
