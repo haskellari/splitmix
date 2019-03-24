@@ -1,9 +1,7 @@
-cabal-version:  >= 1.10
-name:           splitmix
-version:        0.0.1
-x-revision:     1
-
-synopsis:       Fast Splittable PRNG
+cabal-version:      >=1.10
+name:               splitmix
+version:            0.0.2
+synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
   .
@@ -28,20 +26,14 @@ description:
   (the mixing functions are easily inverted, and two successive outputs
   suffice to reconstruct the internal state).
 
-license:        BSD3
-license-file:   LICENSE
-maintainer:     Oleg Grenrus <oleg.grenrus@iki.fi>
-bug-reports:    https://github.com/phadej/splitmix#issues
-category:       System
-build-type:     Simple
+license:            BSD3
+license-file:       LICENSE
+maintainer:         Oleg Grenrus <oleg.grenrus@iki.fi>
+bug-reports:        https://github.com/phadej/splitmix#issues
+category:           System
+build-type:         Simple
 tested-with:
-  GHC==7.6.3,
-  GHC==7.8.4,
-  GHC==7.10.3,
-  GHC==8.0.2,
-  GHC==8.2.2,
-  GHC==8.4.4,
-  GHC==8.6.4
+  GHC ==8.6.4 || ==8.4.4 || ==8.2.2 || ==8.0.2 || ==7.10.3 || ==7.8.4 || ==7.6.3 || ==7.4.2 || ==7.2.2 || ==7.0.4
 
 extra-source-files:
   README.md
@@ -51,17 +43,17 @@ library
   default-language: Haskell2010
   ghc-options:      -Wall
   hs-source-dirs:   src
-  exposed-modules:
-    System.Random.SplitMix
-  build-depends:
-    base    >=4.5     && <4.13,
-    deepseq >=1.3.0.0 && <1.5,
-    time    >=1.4.0.1 && <1.9,
-    random  >=1.1     && <1.2
+  exposed-modules:  System.Random.SplitMix
 
   -- dump-core
   -- build-depends: dump-core
   -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
+
+  build-depends:
+      base     >=4.3     && <4.13
+    , deepseq  >=1.3.0.0 && <1.5
+    , random   >=1.0     && <1.2
+    , time     >=1.2.0.3 && <1.9
 
 source-repository head
   type:     git
@@ -74,12 +66,12 @@ benchmark comparison
   hs-source-dirs:   bench
   main-is:          Bench.hs
   build-depends:
-    base,
-    splitmix,
-    random,
-    containers >=0.4.2.1 && <0.7,
-    tf-random  >=0.5     && <0.6,
-    criterion  >=1.1.0.0 && <1.6
+      base
+    , containers  >=0.4.2.1 && <0.7
+    , criterion   >=1.1.0.0 && <1.6
+    , random
+    , splitmix
+    , tf-random   >=0.5     && <0.6
 
 test-suite montecarlo-pi
   type:             exitcode-stdio-1.0
@@ -88,8 +80,8 @@ test-suite montecarlo-pi
   hs-source-dirs:   tests
   main-is:          SplitMixPi.hs
   build-depends:
-    base,
-    splitmix
+      base
+    , splitmix
 
 test-suite splitmix-dieharder
   type:             exitcode-stdio-1.0
@@ -98,13 +90,13 @@ test-suite splitmix-dieharder
   hs-source-dirs:   tests
   main-is:          Dieharder.hs
   build-depends:
-    base,
-    splitmix,
-    random,
-    deepseq,
-    async                 >=2.2.1    && <2.3,
-    vector                >=0.12.0.1 && <0.13,
-    base-compat-batteries >=0.10.1   && <0.11,
-    bytestring            >=0.9.2.1  && <0.11,
-    process               >=1.1.0.1  && <1.7,
-    tf-random             >=0.5      && <0.6
+      async                  >=2.2.1    && <2.3
+    , base
+    , base-compat-batteries  >=0.10.5   && <0.11
+    , bytestring             >=0.9.1.8  && <0.11
+    , deepseq
+    , process                >=1.0.1.5  && <1.7
+    , random
+    , splitmix
+    , tf-random              >=0.5      && <0.6
+    , vector                 >=0.11.0.0 && <0.13

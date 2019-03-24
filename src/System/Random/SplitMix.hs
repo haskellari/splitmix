@@ -23,7 +23,16 @@
 --  because generated sequences of pseudorandom values are too predictable
 --  (the mixing functions are easily inverted, and two successive outputs
 --  suffice to reconstruct the internal state).
+--
+--  Note: This module supports all GHCs since GHC-7.0.4,
+--  but GHC-7.0 and GHC-7.2 have slow implementation, as there
+--  are no native 'popCount'.
+--
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE BangPatterns #-}
+#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
+#endif
 module System.Random.SplitMix (
     SMGen,
     nextWord64,
@@ -40,7 +49,7 @@ module System.Random.SplitMix (
     ) where
 
 import Control.DeepSeq       (NFData (..))
-import Data.Bits             (popCount, shiftL, shiftR, xor, (.|.))
+import Data.Bits             (shiftL, shiftR, xor, (.|.))
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
@@ -48,6 +57,17 @@ import System.CPUTime        (cpuTimePrecision, getCPUTime)
 import System.IO.Unsafe      (unsafePerformIO)
 
 import qualified System.Random as R
+
+#if MIN_VERSION_base(4,5,0)
+import Data.Bits             (popCount)
+#else
+import Data.Bits             ((.&.))
+popCount :: Word64 -> Int
+popCount = go 0
+ where
+   go !c 0 = c
+   go c w = go (c+1) (w .&. (w - 1)) -- clear the least significant
+#endif
 
 -------------------------------------------------------------------------------
 -- Generator
@@ -79,6 +99,13 @@ nextInt g = case nextWord64 g of
     (w64, g') -> (fromIntegral w64, g')
 
 -- | Generate a 'Double' in @[0, 1)@ range.
+<<<<<<< HEAD
+=======
+--
+-- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextDouble) (mkSMGen 1337) :: [String]
+-- ["0.710","0.836","0.771","0.409","0.297","0.527","0.589","0.067"]
+--
+>>>>>>> 17c77f7... fixup! Support GHC-7.0.4+
 nextDouble :: SMGen -> (Double, SMGen)
 nextDouble g = case nextWord64 g of
     (w64, g') -> (fromIntegral (w64 `shiftR` 11) * doubleUlp, g')
