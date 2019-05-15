@@ -53,7 +53,9 @@ import Data.Bits             (shiftL, shiftR, xor, (.|.))
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
+#if !__GHCJS__
 import System.CPUTime        (cpuTimePrecision, getCPUTime)
+#endif
 import System.IO.Unsafe      (unsafePerformIO)
 
 import qualified System.Random as R
@@ -235,9 +237,13 @@ theSMGen = unsafePerformIO $ initSMGen >>= newIORef
 mkSeedTime :: IO Word64
 mkSeedTime = do
     now <- getPOSIXTime
-    cpu <- getCPUTime
     let lo = truncate now :: Word32
-        hi = fromIntegral (cpu `div` cpuTimePrecision) :: Word32
+#if __GHCJS__
+    let hi = lo
+#else
+    cpu <- getCPUTime
+    let hi = fromIntegral (cpu `div` cpuTimePrecision) :: Word32
+#endif
     return $ fromIntegral hi `shiftL` 32 .|. fromIntegral lo
 
 -------------------------------------------------------------------------------
