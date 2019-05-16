@@ -9,6 +9,7 @@ import qualified System.Random as R
 import qualified System.Random.TF as TF
 import qualified System.Random.TF.Instances as TF
 import qualified System.Random.SplitMix as SM
+import qualified System.Random.SplitMix32 as SM32
 
 -------------------------------------------------------------------------------
 -- List
@@ -30,6 +31,9 @@ tfRandomList w64 = genListN $ TF.seedTFGen (w64, w64, w64, w64)
 
 splitMixList :: Word64 -> [Int]
 splitMixList w64 = genListN $ SM.mkSMGen w64
+
+splitMix32List :: Word64 -> [Int]
+splitMix32List w64 = genListN $ SM32.mkSMGen $ fromIntegral w64
 
 -------------------------------------------------------------------------------
 -- Tree
@@ -57,6 +61,9 @@ tfRandomTree w64 = genTreeN $ TF.seedTFGen (w64, w64, w64, w64)
 splitMixTree :: Word64 -> T.Tree Int
 splitMixTree w64 = genTreeN $ SM.mkSMGen w64
 
+splitMix32Tree :: Word64 -> T.Tree Int
+splitMix32Tree w64 = genTreeN $ SM32.mkSMGen $ fromIntegral w64
+
 -------------------------------------------------------------------------------
 -- List Word64
 -------------------------------------------------------------------------------
@@ -77,6 +84,9 @@ tfRandomList64 w64 = genListN64 TF.random $ TF.seedTFGen (w64, w64, w64, w64)
 
 splitMixList64 :: Word64 -> [Word64]
 splitMixList64 w64 = genListN64 SM.nextWord64 $ SM.mkSMGen w64
+
+splitMix32List64 :: Word64 -> [Word64]
+splitMix32List64 w64 = genListN64 SM32.nextWord64 $ SM32.mkSMGen $ fromIntegral w64
 
 -------------------------------------------------------------------------------
 -- Tree Word64
@@ -105,6 +115,9 @@ tfRandomTree64 w64 = genTreeN64 TF.random $ TF.seedTFGen (w64, w64, w64, w64)
 splitMixTree64 :: Word64 -> T.Tree Word64
 splitMixTree64 w64 = genTreeN64 SM.nextWord64 $ SM.mkSMGen w64
 
+splitMix32Tree64 :: Word64 -> T.Tree Word64
+splitMix32Tree64 w64 = genTreeN64 SM32.nextWord64 $ SM32.mkSMGen $ fromIntegral w64
+
 -------------------------------------------------------------------------------
 -- Main
 -------------------------------------------------------------------------------
@@ -112,23 +125,27 @@ splitMixTree64 w64 = genTreeN64 SM.nextWord64 $ SM.mkSMGen w64
 main :: IO ()
 main = defaultMain
     [ bgroup "list"
-        [ bench "random"    $ nf randomList 42
-        , bench "tf-random" $ nf tfRandomList 42
-        , bench "splitmix"  $ nf splitMixList 42
+        [ bench "random"     $ nf randomList 42
+        , bench "tf-random"  $ nf tfRandomList 42
+        , bench "splitmix"   $ nf splitMixList 42
+        , bench "splitmix32" $ nf splitMix32List 42
         ]
     , bgroup "tree"
-        [ bench "random"    $ nf randomTree 42
-        , bench "tf-random" $ nf tfRandomTree 42
-        , bench "splitmix"  $ nf splitMixTree 42
+        [ bench "random"     $ nf randomTree 42
+        , bench "tf-random"  $ nf tfRandomTree 42
+        , bench "splitmix"   $ nf splitMixTree 42
+        , bench "splitmix32" $ nf splitMix32Tree 42
         ]
     , bgroup "list 64"
-        [ bench "random"    $ nf randomList64 42
-        , bench "tf-random" $ nf tfRandomList64 42
-        , bench "splitmix"  $ nf splitMixList64 42
+        [ bench "random"     $ nf randomList64 42
+        , bench "tf-random"  $ nf tfRandomList64 42
+        , bench "splitmix"   $ nf splitMixList64 42
+        , bench "splitmix32" $ nf splitMix32List64 42
         ]
     , bgroup "tree 64"
-        [ bench "random"    $ nf randomTree64 42
-        , bench "tf-random" $ nf tfRandomTree64 42
-        , bench "splitmix"  $ nf splitMixTree64 42
+        [ bench "random"     $ nf randomTree64 42
+        , bench "tf-random"  $ nf tfRandomTree64 42
+        , bench "splitmix"   $ nf splitMixTree64 42
+        , bench "splitmix32" $ nf splitMix32Tree64 42
         ]
     ]

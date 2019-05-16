@@ -1,26 +1,9 @@
 -- |
 -- /SplitMix/ is a splittable pseudorandom number generator (PRNG) that is quite fast.
 --
--- Guy L. Steele, Jr., Doug Lea, and Christine H. Flood. 2014.
---  Fast splittable pseudorandom number generators. In Proceedings
---  of the 2014 ACM International Conference on Object Oriented
---  Programming Systems Languages & Applications (OOPSLA '14). ACM,
---  New York, NY, USA, 453-472. DOI:
---  <https://doi.org/10.1145/2660193.2660195>
+-- This is 32bit variant (original one is 32 bit).
 --
---  The paper describes a new algorithm /SplitMix/ for /splittable/
---  pseudorandom number generator that is quite fast: 9 64 bit arithmetic/logical
---  operations per 64 bits generated.
---
---  /SplitMix/ is tested with two standard statistical test suites (DieHarder and
---  TestU01, this implementation only using the former) and it appears to be
---  adequate for "everyday" use, such as Monte Carlo algorithms and randomized
---  data structures where speed is important.
---
---  In particular, it __should not be used for cryptographic or security applications__,
---  because generated sequences of pseudorandom values are too predictable
---  (the mixing functions are easily inverted, and two successive outputs
---  suffice to reconstruct the internal state).
+-- You __really don't want to use this one__.
 --
 --  Note: This module supports all GHCs since GHC-7.0.4,
 --  but GHC-7.0 and GHC-7.2 have slow implementation, as there
@@ -31,13 +14,13 @@
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
-module System.Random.SplitMix (
+module System.Random.SplitMix32 (
     SMGen,
-    nextWord64,
     nextWord32,
+    nextWord64,
     nextTwoWord32,
     nextInt,
-    nextDouble,
+    nextFloat,
     splitSMGen,
     -- * Initialisation
     mkSMGen,
@@ -65,7 +48,7 @@ import System.CPUTime        (cpuTimePrecision, getCPUTime)
 import Data.Bits             (popCount)
 #else
 import Data.Bits             ((.&.))
-popCount :: Word64 -> Int
+popCount :: Word32 -> Int
 popCount = go 0
  where
    go !c 0 = c
@@ -82,7 +65,7 @@ popCount = go 0
 -------------------------------------------------------------------------------
 
 -- | SplitMix generator state.
-data SMGen = SMGen !Word64 !Word64 -- seed and gamma; gamma is odd
+data SMGen = SMGen {-# UNPACK #-} !Word32 {-# UNPACK #-} !Word32 -- seed and gamma; gamma is odd
   deriving Show
 
 instance NFData SMGen where
@@ -97,7 +80,7 @@ instance NFData SMGen where
 -- Nothing
 --
 -- >>> readMaybe (show (mkSMGen 42)) :: Maybe SMGen
--- Just (SMGen 9297814886316923340 13679457532755275413)
+-- Just (SMGen 142593372 1604540297)
 --
 instance Read SMGen where
     readsPrec d r =  readParen (d > 10) (\r0 ->
@@ -112,44 +95,47 @@ instance Read SMGen where
 -- Operations
 -------------------------------------------------------------------------------
 
--- | Generate a 'Word64'.
+-- | Generate a 'Word32'.
 --
--- >>> take 3 $ map (printf "%x") $ unfoldr (Just . nextWord64) (mkSMGen 1337) :: [String]
--- ["b5c19e300e8b07b3","d600e0e216c0ac76","c54efc3b3cc5af29"]
+-- >>> take 3 $ map (printf "%x") $ unfoldr (Just . nextWord32) (mkSMGen 1337) :: [String]
+-- ["e0cfe722","a6ced0f0","c3a6d889"]
 --
-nextWord64 :: SMGen -> (Word64, SMGen)
-nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
+nextWord32 :: SMGen -> (Word32, SMGen)
+nextWord32 (SMGen seed gamma) = (mix32 seed', SMGen seed' gamma)
   where
     seed' = seed + gamma
 
--- | Generate 'Word32' by truncating 'nextWord64'.
-nextWord32 :: SMGen -> (Word32, SMGen)
-nextWord32 g = (fromIntegral w64, g') where
-    (w64, g') = nextWord64 g
+-- | Generate a 'Word64', by generating to 'Word32's.
+nextWord64 :: SMGen -> (Word64, SMGen)
+nextWord64 s0 = (fromIntegral w0 `shiftL` 32 .|. fromIntegral w1,  s2)
+  where
+    (w0, s1) = nextWord32 s0
+    (w1, s2) = nextWord32 s1
 
 -- | Generate two 'Word32'.
 nextTwoWord32 :: SMGen -> (Word32, Word32, SMGen)
-nextTwoWord32 g = (fromIntegral $ w64 `shiftR` 32, fromIntegral w64, g') where
-    (w64, g') = nextWord64 g
+nextTwoWord32 s0 = (w0, w1, s2) where
+    (w0, s1) = nextWord32 s0
+    (w1, s2) = nextWord32 s1
 
 -- | Generate an 'Int'.
 nextInt :: SMGen -> (Int, SMGen)
-nextInt g = case nextWord64 g of
-    (w64, g') -> (fromIntegral w64, g')
+nextInt g = case nextWord32 g of
+    (w32, g') -> (fromIntegral w32, g')
 
--- | Generate a 'Double' in @[0, 1)@ range.
+-- | Generate a 'Float' in @[0, 1)@ range.
 --
--- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextDouble) (mkSMGen 1337) :: [String]
--- ["0.710","0.836","0.771","0.409","0.297","0.527","0.589","0.067"]
+-- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextFloat) (mkSMGen 1337) :: [String]
+-- ["0.878","0.652","0.764","0.631","0.063","0.180","0.845","0.645"]
 --
-nextDouble :: SMGen -> (Double, SMGen)
-nextDouble g = case nextWord64 g of
-    (w64, g') -> (fromIntegral (w64 `shiftR` 11) * doubleUlp, g')
+nextFloat :: SMGen -> (Float, SMGen)
+nextFloat g = case nextWord32 g of
+    (w32, g') -> (fromIntegral (w32 `shiftR` 8) * floatUlp, g')
 
 -- | Split a generator into a two uncorrelated generators.
 splitSMGen :: SMGen -> (SMGen, SMGen)
 splitSMGen (SMGen seed gamma) =
-    (SMGen seed'' gamma, SMGen (mix64 seed') (mixGamma seed''))
+    (SMGen seed'' gamma, SMGen (mix32 seed') (mixGamma seed''))
   where
     seed'  = seed + gamma
     seed'' = seed' + gamma
@@ -158,49 +144,59 @@ splitSMGen (SMGen seed gamma) =
 -- Algorithm
 -------------------------------------------------------------------------------
 
-goldenGamma :: Word64
-goldenGamma = 0x9e3779b97f4a7c15
+-- | (1 + sqrt 5) / 2 * (2 ^^ bits)
+goldenGamma :: Word32
+goldenGamma = 0x9e3779b9
 
-doubleUlp :: Double
-doubleUlp =  1.0 / fromIntegral (1 `shiftL` 53 :: Word64)
+floatUlp :: Float
+floatUlp =  1.0 / fromIntegral (1 `shiftL` 24 :: Word32)
 
--- Note: in JDK implementations the mix64 and mix64variant13
--- (which is inlined into mixGamma) are swapped.
-mix64 :: Word64 -> Word64
-mix64 z0 =
-   -- MurmurHash3Mixer
-    let z1 = shiftXorMultiply 33 0xff51afd7ed558ccd z0
-        z2 = shiftXorMultiply 33 0xc4ceb9fe1a85ec53 z1
-        z3 = shiftXor 33 z2
+#if defined(__GHCJS__) && defined(OPTIMISED_MIX32)
+-- JavaScript Foreign Function Interface
+-- https://github.com/ghcjs/ghcjs/blob/master/doc/foreign-function-interface.md
+
+foreign import javascript unsafe
+    "var x0 = $1 ^ $1 >>> 16; var x1 = x0 & 0xffff; var x2 = (((x0 >>> 16 & 0xffff) * 0x0000ca6b + x1 * 0x000085eb & 0xffff) << 16) + x1 * 0x0000ca6b; var x3 = x2 ^ x2 >>> 13; var x4 = x3 & 0xffff; var x5 = (((x3 >>> 16 & 0xffff) * 0x0000ae35 + x4 * 0x0000c2b2 & 0xffff) << 16) + x4 * 0x0000ae35; $r = (x5 ^ x5 >>> 16) | 0;"
+    mix32 :: Word32 -> Word32
+
+foreign import javascript unsafe
+    "var x0 = $1 ^ $1 >>> 16; var x1 = x0 & 0xffff; var x2 = (((x0 >>> 16 & 0xffff) * 0x00006ccb + x1 * 0x000069ad & 0xffff) << 16) + x1 * 0x00006ccb; var x3 = x2 ^ x2 >>> 13; var x4 = x3 & 0xffff; var x5 = (((x3 >>> 16 & 0xffff) * 0x0000b5b3 + x4 * 0x0000cd9a & 0xffff) << 16) + x4 * 0x0000b5b3; $r = (x5 ^ x5 >>> 16) | 0;"
+    mix32variant13 :: Word32 -> Word32
+
+#else
+mix32 :: Word32 -> Word32
+mix32 z0 =
+   -- MurmurHash3Mixer 32bit
+    let z1 = shiftXorMultiply 16 0x85ebca6b z0
+        z2 = shiftXorMultiply 13 0xc2b2ae35 z1
+        z3 = shiftXor 16 z2
     in z3
 
 -- used only in mixGamma
-mix64variant13 :: Word64 -> Word64
-mix64variant13 z0 =
-   -- Better Bit Mixing - Improving on MurmurHash3's 64-bit Finalizer
-   -- http://zimbry.blogspot.fi/2011/09/better-bit-mixing-improving-on.html
-   --
-   -- Stafford's Mix13
-    let z1 = shiftXorMultiply 30 0xbf58476d1ce4e5b9 z0 -- MurmurHash3 mix constants
-        z2 = shiftXorMultiply 27 0x94d049bb133111eb z1
-        z3 = shiftXor 31 z2
+mix32variant13 :: Word32 -> Word32
+mix32variant13 z0 =
+   -- See avalanche "executable"
+    let z1 = shiftXorMultiply 16 0x69ad6ccb z0
+        z2 = shiftXorMultiply 13 0xcd9ab5b3 z1
+        z3 = shiftXor 16 z2
     in z3
 
-mixGamma :: Word64 -> Word64
+shiftXor :: Int -> Word32 -> Word32
+shiftXor n w = w `xor` (w `shiftR` n)
+
+shiftXorMultiply :: Int -> Word32 -> Word32 -> Word32
+shiftXorMultiply n k w = shiftXor n w * k
+#endif
+
+mixGamma :: Word32 -> Word32
 mixGamma z0 =
-    let z1 = mix64variant13 z0 .|. 1             -- force to be odd
+    let z1 = mix32variant13 z0 .|. 1             -- force to be odd
         n  = popCount (z1 `xor` (z1 `shiftR` 1))
     -- see: http://www.pcg-random.org/posts/bugs-in-splitmix.html
     -- let's trust the text of the paper, not the code.
-    in if n >= 24
+    in if n >= 12
         then z1
-        else z1 `xor` 0xaaaaaaaaaaaaaaaa
-
-shiftXor :: Int -> Word64 -> Word64
-shiftXor n w = w `xor` (w `shiftR` n)
-
-shiftXorMultiply :: Int -> Word64 -> Word64 -> Word64
-shiftXorMultiply n k w = shiftXor n w * k
+        else z1 `xor` 0xaaaaaaaa
 
 -------------------------------------------------------------------------------
 -- Initialisation
@@ -212,26 +208,26 @@ shiftXorMultiply n k w = shiftXor n w * k
 -- SMGen 2 3
 --
 seedSMGen
-    :: Word64 -- ^ seed
-    -> Word64 -- ^ gamma
+    :: Word32 -- ^ seed
+    -> Word32 -- ^ gamma
     -> SMGen
 seedSMGen seed gamma = SMGen seed (gamma .|. 1)
 
 -- | Like 'seedSMGen' but takes a pair.
-seedSMGen' :: (Word64, Word64) -> SMGen
+seedSMGen' :: (Word32, Word32) -> SMGen
 seedSMGen' = uncurry seedSMGen
 
 -- | Extract current state of 'SMGen'.
-unseedSMGen :: SMGen -> (Word64, Word64)
+unseedSMGen :: SMGen -> (Word32, Word32)
 unseedSMGen (SMGen seed gamma) = (seed, gamma)
 
 -- | Preferred way to deterministically construct 'SMGen'.
 --
 -- >>> mkSMGen 42
--- SMGen 9297814886316923340 13679457532755275413
+-- SMGen 142593372 1604540297
 --
-mkSMGen :: Word64 -> SMGen
-mkSMGen s = SMGen (mix64 s) (mixGamma (s + goldenGamma))
+mkSMGen :: Word32 -> SMGen
+mkSMGen s = SMGen (mix32 s) (mixGamma (s + goldenGamma))
 
 -- | Initialize 'SMGen' using system time.
 initSMGen :: IO SMGen
@@ -245,7 +241,7 @@ theSMGen :: IORef SMGen
 theSMGen = unsafePerformIO $ initSMGen >>= newIORef
 {-# NOINLINE theSMGen #-}
 
-mkSeedTime :: IO Word64
+mkSeedTime :: IO Word32
 mkSeedTime = do
     now <- getPOSIXTime
     let lo = truncate now :: Word32

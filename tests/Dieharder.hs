@@ -8,6 +8,7 @@ import Prelude.Compat
 
 import Control.Concurrent.QSem
 import Control.DeepSeq         (force)
+import Control.Monad           (when)
 import Data.Bits               (shiftL, (.|.))
 import Data.Char               (isSpace)
 import Data.List               (isInfixOf, unfoldr)
@@ -17,7 +18,7 @@ import Foreign.C               (Errno (..), ePIPE)
 import Foreign.Ptr             (castPtr)
 import GHC.IO.Exception        (IOErrorType (..), IOException (..))
 import System.Environment      (getArgs)
-import System.IO               (Handle, hGetContents)
+import System.IO               (Handle, hGetContents, stdout)
 import Text.Printf             (printf)
 
 import qualified Control.Concurrent.Async     as A
@@ -27,6 +28,7 @@ import qualified Data.ByteString.Unsafe       as BS (unsafePackCStringLen)
 import qualified Data.Vector.Storable.Mutable as MSV
 import qualified System.Process               as Proc
 import qualified System.Random.SplitMix       as SM
+import qualified System.Random.SplitMix32     as SM32
 import qualified System.Random.TF             as TF
 import qualified System.Random.TF.Gen         as TF
 import qualified System.Random.TF.Init        as TF
@@ -37,18 +39,26 @@ main = do
     if null args
     then return ()
     else do
-        (cmd, runs, conc, seed, test, _help) <- parseArgsIO args $ (,,,,,)
+        (cmd, runs, conc, seed, test, raw, _help) <- parseArgsIO args $ (,,,,,,)
             <$> arg
             <*> optDef "-n" 1
             <*> optDef "-j" 1
             <*> opt "-s"
             <*> opt "-d"
+            <*> flag "-r"
             <*> flag "-h"
+
+        let run :: RunType g
+            run | raw       = runRaw
+                | otherwise = runManaged
 
         case cmd of
               "splitmix"      -> do
                   g <- maybe SM.initSMGen (return . SM.mkSMGen) seed
                   run test runs conc SM.splitSMGen SM.nextWord64 g
+              "splitmix32"      -> do
+                  g <- maybe SM32.initSMGen (return . SM32.mkSMGen) (fmap fromIntegral seed)
+                  run test runs conc SM32.splitSMGen SM32.nextWord64 g
               "tfrandom"      -> do
                   g <- TF.initTFGen
                   run test runs conc TF.split tfNext64 g
@@ -64,19 +74,26 @@ tfNext64 g =
 -- Dieharder
 -------------------------------------------------------------------------------
 
-run :: Maybe Int
+type RunType g =
+       Maybe Int
     -> Int
     -> Int
     -> (g -> (g, g))
     -> (g -> (Word64, g))
     -> g
-    -> IO ()
-run test runs conc split word gen = do
+    -> IO () 
+
+runRaw :: RunType g
+runRaw _test _runs _conc split word gen =
+    generate word split gen stdout
+
+runManaged :: RunType g
+runManaged test runs conc split word gen = do
     qsem <- newQSem conc
 
     rs <- A.forConcurrently (take runs $ unfoldr (Just . split) gen) $ \g ->
         E.bracket_ (waitQSem qsem) (signalQSem qsem) $
-            dieharder test (generate word g)
+            dieharder test (generate word split g)
 
     case mconcat rs of
         Result p w f -> do
@@ -84,7 +101,7 @@ run test runs conc split word gen = do
             printf "PASSED %4d %6.02f%%\n" p (fromIntegral p / total * 100)
             printf "WEAK   %4d %6.02f%%\n" w (fromIntegral w / total * 100)
             printf "FAILED %4d %6.02f%%\n" f (fromIntegral f / total * 100)
-{-# INLINE run #-}
+{-# INLINE runManaged #-}
 
 dieharder :: Maybe Int -> (Handle -> IO ()) -> IO Result
 dieharder test gen = do
@@ -144,26 +161,29 @@ instance Monoid Result where
 size :: Int
 size = 512
 
-generate :: forall g. (g -> (Word64, g)) -> g -> Handle -> IO ()
-generate word gen0 h = do
+generate
+    :: forall g. (g -> (Word64, g))
+    -> (g -> (g, g))
+    -> g -> Handle -> IO ()
+generate word split gen0 h = do
     vec <- MSV.new size
     go gen0 vec
   where
     go :: g -> MSV.IOVector Word64 -> IO ()
     go gen vec = do
-        gen' <- write gen vec 0
+        let (g1, g2) = split gen
+        write g1 vec 0
         MSV.unsafeWith vec $ \ptr -> do
             bs <- BS.unsafePackCStringLen (castPtr ptr, size * 8)
             BS.hPutStr h bs
-        go gen' vec
+        go g2 vec
 
-    write :: g -> MSV.IOVector Word64 -> Int -> IO g
+    write :: g -> MSV.IOVector Word64 -> Int -> IO ()
     write !gen !vec !i = do
         let (w64, gen') = word gen
         MSV.unsafeWrite vec i w64
-        if i < size
-        then write gen' vec (i + 1)
-        else return gen'
+        when (i < size) $
+            write gen' vec (i + 1)
 {-# INLINE generate #-}
 
 -------------------------------------------------------------------------------
