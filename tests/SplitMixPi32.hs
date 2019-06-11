@@ -1,12 +1,12 @@
 module Main (main) where
 
 import Data.List (unfoldr, foldl')
-import System.Random.SplitMix
+import System.Random.SplitMix32
 
-doubles :: SMGen -> [Double]
-doubles = unfoldr (Just . nextDouble)
+doubles :: SMGen -> [Float]
+doubles = unfoldr (Just . nextFloat)
 
-monteCarloPi :: SMGen -> Double
+monteCarloPi :: SMGen -> Float
 monteCarloPi = (4 *) . calc . foldl' accum (P 0 0) . take 50000000 . pairs . doubles
   where
     calc (P n m) = fromIntegral n / fromIntegral m
@@ -22,6 +22,6 @@ data P = P !Int !Int
 main :: IO ()
 main = do
     pi' <- fmap monteCarloPi newSMGen
-    print (pi :: Double)
+    print (pi :: Float)
     print pi'
     print (pi - pi')
