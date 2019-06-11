@@ -127,8 +127,8 @@ test-suite montecarlo-pi-32
     , splitmix
 
 test-suite splitmix-dieharder
-  type:             exitcode-stdio-1.0
   default-language: Haskell2010
+  type:             exitcode-stdio-1.0
   ghc-options:      -Wall -threaded -rtsopts
   hs-source-dirs:   tests
   main-is:          Dieharder.hs
