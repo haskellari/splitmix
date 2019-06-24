@@ -20,6 +20,7 @@ module System.Random.SplitMix32 (
     nextWord64,
     nextTwoWord32,
     nextInt,
+    nextDouble,
     nextFloat,
     splitSMGen,
     -- * Initialisation
@@ -42,6 +43,12 @@ import qualified System.Random as R
 
 #if !__GHCJS__
 import System.CPUTime        (cpuTimePrecision, getCPUTime)
+#endif
+
+#if MIN_VERSION_base(4,7,0)
+import Data.Bits (finiteBitSize)
+#else
+import Data.Bits (bitSize)
 #endif
 
 #if MIN_VERSION_base(4,5,0)
@@ -120,8 +127,30 @@ nextTwoWord32 s0 = (w0, w1, s2) where
 
 -- | Generate an 'Int'.
 nextInt :: SMGen -> (Int, SMGen)
-nextInt g = case nextWord32 g of
-    (w32, g') -> (fromIntegral w32, g')
+nextInt g | isBigInt  = int64
+          | otherwise = int32
+  where
+    int32 = case nextWord32 g of
+        (w, g') -> (fromIntegral w, g')
+    int64 = case nextWord64 g of
+        (w, g') -> (fromIntegral w, g')
+
+isBigInt :: Bool
+isBigInt =
+#if MIN_VERSION_base(4,7,0)
+    finiteBitSize (undefined :: Int) > 32
+#else
+    bitSize       (undefined :: Int) > 32
+#endif
+
+-- | Generate a 'Double' in @[0, 1)@ range.
+--
+-- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextDouble) (mkSMGen 1337) :: [String]
+-- ["0.878","0.764","0.063","0.845","0.262","0.490","0.176","0.544"]
+--
+nextDouble :: SMGen -> (Double, SMGen)
+nextDouble g = case nextWord64 g of
+    (w64, g') -> (fromIntegral (w64 `shiftR` 11) * doubleUlp, g')
 
 -- | Generate a 'Float' in @[0, 1)@ range.
 --
@@ -150,6 +179,9 @@ goldenGamma = 0x9e3779b9
 
 floatUlp :: Float
 floatUlp =  1.0 / fromIntegral (1 `shiftL` 24 :: Word32)
+
+doubleUlp :: Double
+doubleUlp =  1.0 / fromIntegral (1 `shiftL` 53 :: Word64)
 
 #if defined(__GHCJS__) && defined(OPTIMISED_MIX32)
 -- JavaScript Foreign Function Interface

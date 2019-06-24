@@ -1,3 +1,7 @@
+# 0.0.3
+
+- Add `System.Random.SplitMix32` module
+
 # 0.0.2
 
 - Support back to GHC-7.0

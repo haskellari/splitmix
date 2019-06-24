@@ -38,6 +38,7 @@ module System.Random.SplitMix (
     nextTwoWord32,
     nextInt,
     nextDouble,
+    nextFloat,
     splitSMGen,
     -- * Initialisation
     mkSMGen,
@@ -123,11 +124,15 @@ nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
     seed' = seed + gamma
 
 -- | Generate 'Word32' by truncating 'nextWord64'.
+--
+-- @since 0.0.3
 nextWord32 :: SMGen -> (Word32, SMGen)
 nextWord32 g = (fromIntegral w64, g') where
     (w64, g') = nextWord64 g
 
 -- | Generate two 'Word32'.
+--
+-- @since 0.0.3
 nextTwoWord32 :: SMGen -> (Word32, Word32, SMGen)
 nextTwoWord32 g = (fromIntegral $ w64 `shiftR` 32, fromIntegral w64, g') where
     (w64, g') = nextWord64 g
@@ -146,6 +151,16 @@ nextDouble :: SMGen -> (Double, SMGen)
 nextDouble g = case nextWord64 g of
     (w64, g') -> (fromIntegral (w64 `shiftR` 11) * doubleUlp, g')
 
+-- | Generate a 'Float' in @[0, 1)@ range.
+--
+-- >>> take 8 $ map (printf "%0.3f") $ unfoldr (Just . nextFloat) (mkSMGen 1337) :: [String]
+-- ["0.057","0.089","0.237","0.383","0.680","0.320","0.826","0.007"]
+--
+-- @since 0.0.3
+nextFloat :: SMGen -> (Float, SMGen)
+nextFloat g = case nextWord32 g of
+    (w32, g') -> (fromIntegral (w32 `shiftR` 8) * floatUlp, g')
+
 -- | Split a generator into a two uncorrelated generators.
 splitSMGen :: SMGen -> (SMGen, SMGen)
 splitSMGen (SMGen seed gamma) =
@@ -160,6 +175,9 @@ splitSMGen (SMGen seed gamma) =
 
 goldenGamma :: Word64
 goldenGamma = 0x9e3779b97f4a7c15
+
+floatUlp :: Float
+floatUlp =  1.0 / fromIntegral (1 `shiftL` 24 :: Word32)
 
 doubleUlp :: Double
 doubleUlp =  1.0 / fromIntegral (1 `shiftL` 53 :: Word64)
