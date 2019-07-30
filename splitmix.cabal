@@ -52,7 +52,7 @@ flag random
 library
   default-language: Haskell2010
   ghc-options:      -Wall
-  hs-source-dirs:   src
+  hs-source-dirs:   src src-compat
   other-modules:    Data.Bits.Compat
   exposed-modules:
     System.Random.SplitMix
@@ -106,11 +106,12 @@ benchmark range
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   ghc-options:      -Wall
-  hs-source-dirs:   bench
+  hs-source-dirs:   bench src-compat
   main-is:          Range.hs
+  other-modules:    Data.Bits.Compat
   build-depends:
       base
-    , clock
+    , clock     >=0.8 && <0.9
     , random
     , splitmix
 

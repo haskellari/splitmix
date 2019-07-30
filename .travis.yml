@@ -86,7 +86,7 @@ install:
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - TEST=--enable-tests
   - BENCH=--enable-benchmarks
-  - if [ $HCNUMVER -ge 80800 ] ; then BENCH=--disable-benchmarks ; fi
+  - if [ $HCNUMVER -lt 70400 ]  ||  [ $HCNUMVER -ge 80800 ] ; then BENCH=--disable-benchmarks ; fi
   - HEADHACKAGE=${HEADHACKAGE-false}
   - rm -f $CABALHOME/config
   - |
@@ -150,7 +150,7 @@ script:
   # Testing...
   - ${CABAL} v2-test -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
   # Doctest...
-  - if [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then (cd splitmix-* && doctest  src) ; fi
+  - if [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then (cd splitmix-* && doctest  src src-compat) ; fi
   # cabal check...
   - (cd splitmix-* && ${CABAL} -vnormal check)
   # haddock...

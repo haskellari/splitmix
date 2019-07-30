@@ -1,18 +1,20 @@
 -- http://www.pcg-random.org/posts/bounded-rands.html
-{-# LANGUAGE CPP, BangPatterns #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 module Main where
 
 import Data.Bits
-import Data.Word (Word32, Word64)
-import Data.List (unfoldr)
+import Data.Bits.Compat
+import Data.List        (unfoldr)
+import Data.Word        (Word32, Word64)
 
-import qualified System.Random as R
+import qualified System.Random            as R
 import qualified System.Random.SplitMix32 as SM
 
 #if defined(__GHCJS__)
 #else
-import Text.Printf (printf)
 import System.Clock (Clock (Monotonic), getTime, toNanoSecs)
+import Text.Printf  (printf)
 #endif
 
 main :: IO ()
@@ -38,7 +40,7 @@ sumOf next = go 0 2
                  | otherwise    = let (w, g') = next g n in go (acc + w) (succ n) g'
 
 classicMod :: SM.SMGen -> Word32 -> (Word32, SM.SMGen)
-classicMod g h = 
+classicMod g h =
     let (w32, g') = SM.nextWord32 g in (w32 `mod` h, g')
 
 
@@ -49,7 +51,7 @@ classicMod g h =
 --     return m >> 32;
 -- }
 -- @
--- 
+--
 intMult :: SM.SMGen -> Word32 -> (Word32, SM.SMGen)
 intMult g h =
     (fromIntegral $ (fromIntegral w32 * fromIntegral h :: Word64) `shiftR` 32, g')
@@ -83,7 +85,7 @@ bitmaskWithRejection g0 range = go g0
 -------------------------------------------------------------------------------
 
 clocked :: IO () -> IO ()
-#if defined(__GHCJS__) 
+#if defined(__GHCJS__)
 clocked action = do
     start
     action
