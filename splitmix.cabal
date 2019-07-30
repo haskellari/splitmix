@@ -95,6 +95,19 @@ benchmark simple-sum
     , random
     , splitmix
 
+benchmark range
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   bench
+  main-is:          Range.hs
+  build-depends:
+      base
+    , random
+    , splitmix
+    , clock
+
+
 test-suite examples
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
