@@ -41,14 +41,14 @@ extra-source-files:
 
 flag optimised-mixer
   description: Use JavaScript for mix32
-  manual: True
-  default: False
-
+  manual:      True
+  default:     False
 
 library
   default-language: Haskell2010
   ghc-options:      -Wall
   hs-source-dirs:   src
+  other-modules:    Data.Bits.Compat
   exposed-modules:
     System.Random.SplitMix
     System.Random.SplitMix32
@@ -103,10 +103,9 @@ benchmark range
   main-is:          Range.hs
   build-depends:
       base
+    , clock
     , random
     , splitmix
-    , clock
-
 
 test-suite examples
   type:             exitcode-stdio-1.0

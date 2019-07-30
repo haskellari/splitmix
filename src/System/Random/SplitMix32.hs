@@ -9,10 +9,9 @@
 --  but GHC-7.0 and GHC-7.2 have slow implementation, as there
 --  are no native 'popCount'.
 --
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Trustworthy  #-}
 #endif
 module System.Random.SplitMix32 (
     SMGen,
@@ -23,6 +22,9 @@ module System.Random.SplitMix32 (
     nextDouble,
     nextFloat,
     splitSMGen,
+    -- * Generation
+    bitmaskWithRejection32,
+    bitmaskWithRejection64,
     -- * Initialisation
     mkSMGen,
     initSMGen,
@@ -33,7 +35,9 @@ module System.Random.SplitMix32 (
     ) where
 
 import Control.DeepSeq       (NFData (..))
-import Data.Bits             (shiftL, shiftR, xor, (.|.))
+import Data.Bits             (complement, shiftL, shiftR, xor, (.&.), (.|.))
+import Data.Bits.Compat
+       (countLeadingZeros, finiteBitSize, popCount, zeroBits)
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
@@ -42,24 +46,7 @@ import System.IO.Unsafe      (unsafePerformIO)
 import qualified System.Random as R
 
 #if !__GHCJS__
-import System.CPUTime        (cpuTimePrecision, getCPUTime)
-#endif
-
-#if MIN_VERSION_base(4,7,0)
-import Data.Bits (finiteBitSize)
-#else
-import Data.Bits (bitSize)
-#endif
-
-#if MIN_VERSION_base(4,5,0)
-import Data.Bits             (popCount)
-#else
-import Data.Bits             ((.&.))
-popCount :: Word32 -> Int
-popCount = go 0
- where
-   go !c 0 = c
-   go c w = go (c+1) (w .&. (w - 1)) -- clear the least significant
+import System.CPUTime (cpuTimePrecision, getCPUTime)
 #endif
 
 -- $setup
@@ -136,12 +123,7 @@ nextInt g | isBigInt  = int64
         (w, g') -> (fromIntegral w, g')
 
 isBigInt :: Bool
-isBigInt =
-#if MIN_VERSION_base(4,7,0)
-    finiteBitSize (undefined :: Int) > 32
-#else
-    bitSize       (undefined :: Int) > 32
-#endif
+isBigInt = finiteBitSize (undefined :: Int) > 32
 
 -- | Generate a 'Double' in @[0, 1)@ range.
 --
@@ -229,6 +211,40 @@ mixGamma z0 =
     in if n >= 12
         then z1
         else z1 `xor` 0xaaaaaaaa
+
+-------------------------------------------------------------------------------
+-- Generation
+-------------------------------------------------------------------------------
+
+-- | /Bitmask with rejection/ method of genering subrange of 'Word32'.
+--
+-- @since 0.0.3
+bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
+bitmaskWithRejection32 range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord32 g
+               x' = x .&. mask
+           in if x' >= range
+              then go g'
+              else (x', g')
+
+-- | /Bitmask with rejection/ method of genering subrange of 'Word64'.
+--
+-- @bitmaskWithRejection64 w64@ generates random numbers in closed-open
+-- range of @[0, w64)@.
+--
+-- >>> take 20 $ map (printf "%x") $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337) :: [String]
+-- ["0","2","4","2","1","4","2","4","2","2","3","0","3","2","2","2","3","1","2","2"]
+--
+-- @since 0.0.3
+bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
+bitmaskWithRejection64 range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord64 g
+               x' = x .&. mask
+           in if x' >= range
+              then go g'
+              else (x', g')
 
 -------------------------------------------------------------------------------
 -- Initialisation
