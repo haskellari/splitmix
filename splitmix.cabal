@@ -41,14 +41,19 @@ extra-source-files:
 
 flag optimised-mixer
   description: Use JavaScript for mix32
-  manual: True
-  default: False
+  manual:      True
+  default:     False
 
+flag random
+  description: Providen RandomGen SMGen instance
+  manual:      True
+  default:     True
 
 library
   default-language: Haskell2010
   ghc-options:      -Wall
-  hs-source-dirs:   src
+  hs-source-dirs:   src src-compat
+  other-modules:    Data.Bits.Compat
   exposed-modules:
     System.Random.SplitMix
     System.Random.SplitMix32
@@ -58,10 +63,12 @@ library
   -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
 
   build-depends:
-      base     >=4.3     && <4.13
+      base     >=4.3     && <4.14
     , deepseq  >=1.3.0.0 && <1.5
-    , random   >=1.0     && <1.2
-    , time     >=1.2.0.3 && <1.9
+    , time     >=1.2.0.3 && <1.10
+
+  if flag(random)
+    build-depends: random >=1.0 && <1.2
 
   if flag(optimised-mixer)
     cpp-options: -DOPTIMISED_MIX32=1
@@ -92,6 +99,19 @@ benchmark simple-sum
   main-is:          SimpleSum.hs
   build-depends:
       base
+    , random
+    , splitmix
+
+benchmark range
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   bench src-compat
+  main-is:          Range.hs
+  other-modules:    Data.Bits.Compat
+  build-depends:
+      base
+    , clock     >=0.8 && <0.9
     , random
     , splitmix
 

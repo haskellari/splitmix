@@ -1,6 +1,10 @@
 # 0.0.3
 
 - Add `System.Random.SplitMix32` module
+- Add `bitmaskWithRejection32` and `bitmaskWithRejection64` module
+- Add `nextWord32`, `nextTwoWord32` and `nextFloat`
+- Add `random` flag, dropping dependency on `random`
+  (breaks things, e.g. `QuickCheck`, when disabled).
 
 # 0.0.2
 

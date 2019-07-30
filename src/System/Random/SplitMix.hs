@@ -26,10 +26,9 @@
 --  but GHC-7.0 and GHC-7.2 have slow implementation, as there
 --  are no native 'popCount'.
 --
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Trustworthy  #-}
 #endif
 module System.Random.SplitMix (
     SMGen,
@@ -40,6 +39,9 @@ module System.Random.SplitMix (
     nextDouble,
     nextFloat,
     splitSMGen,
+    -- * Generation
+    bitmaskWithRejection32,
+    bitmaskWithRejection64,
     -- * Initialisation
     mkSMGen,
     initSMGen,
@@ -50,27 +52,19 @@ module System.Random.SplitMix (
     ) where
 
 import Control.DeepSeq       (NFData (..))
-import Data.Bits             (shiftL, shiftR, xor, (.|.))
+import Data.Bits             (complement, shiftL, shiftR, xor, (.&.), (.|.))
+import Data.Bits.Compat      (countLeadingZeros, popCount, zeroBits)
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
+#ifdef MIN_VERSION_random
 import qualified System.Random as R
-
-#if !__GHCJS__
-import System.CPUTime        (cpuTimePrecision, getCPUTime)
 #endif
 
-#if MIN_VERSION_base(4,5,0)
-import Data.Bits             (popCount)
-#else
-import Data.Bits             ((.&.))
-popCount :: Word64 -> Int
-popCount = go 0
- where
-   go !c 0 = c
-   go c w = go (c+1) (w .&. (w - 1)) -- clear the least significant
+#if !__GHCJS__
+import System.CPUTime (cpuTimePrecision, getCPUTime)
 #endif
 
 -- $setup
@@ -221,6 +215,41 @@ shiftXorMultiply :: Int -> Word64 -> Word64 -> Word64
 shiftXorMultiply n k w = shiftXor n w * k
 
 -------------------------------------------------------------------------------
+-- Generation
+-------------------------------------------------------------------------------
+
+-- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
+--
+-- @since 0.0.3
+bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
+bitmaskWithRejection32 range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord32 g
+               x' = x .&. mask
+           in if x' >= range
+              then go g'
+              else (x', g')
+
+-- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
+--
+-- @bitmaskWithRejection64 w64@ generates random numbers in closed-open
+-- range of @[0, w64)@.
+--
+-- >>> take 20 $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337)
+-- [3,1,4,1,2,3,1,1,0,3,4,2,3,0,2,3,3,4,1,0]
+--
+-- @since 0.0.3
+bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
+bitmaskWithRejection64 range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord64 g
+               x' = x .&. mask
+           in if x' >= range
+              then go g'
+              else (x', g')
+
+
+-------------------------------------------------------------------------------
 -- Initialisation
 -------------------------------------------------------------------------------
 
@@ -279,6 +308,8 @@ mkSeedTime = do
 -- System.Random
 -------------------------------------------------------------------------------
 
+#ifdef MIN_VERSION_random
 instance R.RandomGen SMGen where
     next = nextInt
     split = splitSMGen
+#endif
