@@ -59,7 +59,9 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
+#ifdef MIN_VERSION_random
 import qualified System.Random as R
+#endif
 
 #if !__GHCJS__
 import System.CPUTime (cpuTimePrecision, getCPUTime)
@@ -306,6 +308,8 @@ mkSeedTime = do
 -- System.Random
 -------------------------------------------------------------------------------
 
+#ifdef MIN_VERSION_random
 instance R.RandomGen SMGen where
     next = nextInt
     split = splitSMGen
+#endif

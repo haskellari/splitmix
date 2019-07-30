@@ -43,7 +43,9 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
+#ifdef MIN_VERSION_random
 import qualified System.Random as R
+#endif
 
 #if !__GHCJS__
 import System.CPUTime (cpuTimePrecision, getCPUTime)
@@ -217,8 +219,6 @@ mixGamma z0 =
 -------------------------------------------------------------------------------
 
 -- | /Bitmask with rejection/ method of genering subrange of 'Word32'.
---
--- @since 0.0.3
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
 bitmaskWithRejection32 range = go where
     mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
@@ -235,8 +235,6 @@ bitmaskWithRejection32 range = go where
 --
 -- >>> take 20 $ map (printf "%x") $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337) :: [String]
 -- ["0","2","4","2","1","4","2","4","2","2","3","0","3","2","2","2","3","1","2","2"]
---
--- @since 0.0.3
 bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
 bitmaskWithRejection64 range = go where
     mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
@@ -305,6 +303,8 @@ mkSeedTime = do
 -- System.Random
 -------------------------------------------------------------------------------
 
+#ifdef MIN_VERSION_random
 instance R.RandomGen SMGen where
     next = nextInt
     split = splitSMGen
+#endif
