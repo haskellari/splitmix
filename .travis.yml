@@ -86,6 +86,7 @@ install:
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - TEST=--enable-tests
   - BENCH=--enable-benchmarks
+  - if [ $HCNUMVER -ge 80800 ] ; then BENCH=--disable-benchmarks ; fi
   - HEADHACKAGE=${HEADHACKAGE-false}
   - rm -f $CABALHOME/config
   - |
@@ -107,7 +108,7 @@ install:
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if [ $HCNUMVER -ge 80000 ] ; then ${CABAL} v2-install -w ${HC} -j2 doctest --constraint='doctest ==0.16.*' | color_cabal_output ; fi
+  - if [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-install -w ${HC} -j2 doctest --constraint='doctest ==0.16.*' | color_cabal_output ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
@@ -149,7 +150,7 @@ script:
   # Testing...
   - ${CABAL} v2-test -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
   # Doctest...
-  - if [ $HCNUMVER -ge 80000 ] ; then (cd splitmix-* && doctest  src) ; fi
+  - if [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then (cd splitmix-* && doctest  src) ; fi
   # cabal check...
   - (cd splitmix-* && ${CABAL} -vnormal check)
   # haddock...
