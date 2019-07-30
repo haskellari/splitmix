@@ -218,7 +218,7 @@ shiftXorMultiply n k w = shiftXor n w * k
 -- Generation
 -------------------------------------------------------------------------------
 
--- | /Bitmask with rejection/ method of genering subrange of 'Word32'.
+-- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 --
 -- @since 0.0.3
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
@@ -230,13 +230,13 @@ bitmaskWithRejection32 range = go where
               then go g'
               else (x', g')
 
--- | /Bitmask with rejection/ method of genering subrange of 'Word64'.
+-- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
 --
 -- @bitmaskWithRejection64 w64@ generates random numbers in closed-open
 -- range of @[0, w64)@.
 --
--- >>> take 20 $ map (printf "%x") $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337) :: [String]
--- ["3","1","4","1","2","3","1","1","0","3","4","2","3","0","2","3","3","4","1","0"]
+-- >>> take 20 $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337)
+-- [3,1,4,1,2,3,1,1,0,3,4,2,3,0,2,3,3,4,1,0]
 --
 -- @since 0.0.3
 bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)

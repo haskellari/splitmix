@@ -1,0 +1,5 @@
+branches: master
+doctest: True
+
+constraint-set no-random
+  constraints: splitmix -random

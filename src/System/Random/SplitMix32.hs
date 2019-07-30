@@ -218,7 +218,7 @@ mixGamma z0 =
 -- Generation
 -------------------------------------------------------------------------------
 
--- | /Bitmask with rejection/ method of genering subrange of 'Word32'.
+-- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
 bitmaskWithRejection32 range = go where
     mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
@@ -228,13 +228,14 @@ bitmaskWithRejection32 range = go where
               then go g'
               else (x', g')
 
--- | /Bitmask with rejection/ method of genering subrange of 'Word64'.
+-- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
 --
 -- @bitmaskWithRejection64 w64@ generates random numbers in closed-open
 -- range of @[0, w64)@.
 --
--- >>> take 20 $ map (printf "%x") $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337) :: [String]
--- ["0","2","4","2","1","4","2","4","2","2","3","0","3","2","2","2","3","1","2","2"]
+-- >>> take 20 $ unfoldr (Just . bitmaskWithRejection64 5) (mkSMGen 1337)
+-- [0,2,4,2,1,4,2,4,2,2,3,0,3,2,2,2,3,1,2,2]
+--
 bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
 bitmaskWithRejection64 range = go where
     mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
