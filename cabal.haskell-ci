@@ -1,4 +1,6 @@
+ubuntu: bionic
 branches: master
+ghc-head: True
 doctest: <8.8
 benchmarks: >=7.4 && <8.8
 
