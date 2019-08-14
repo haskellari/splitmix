@@ -1,4 +1,3 @@
-ubuntu: bionic
 branches: master
 ghc-head: True
 doctest: <8.8
