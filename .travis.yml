@@ -4,11 +4,10 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.3.20190814
+# version: 0.5.20190916
 #
 language: c
 dist: xenial
-sudo: required
 git:
   # whether to recursively clone submodules
   submodules: false
@@ -35,48 +34,50 @@ matrix:
     - compiler: ghc-8.8.1
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.8.1","cabal-install-3.0"]}}
     - compiler: ghc-8.6.5
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.5","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.5","cabal-install-3.0"]}}
     - compiler: ghc-8.4.4
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.4","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.4","cabal-install-3.0"]}}
     - compiler: ghc-8.2.2
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.2","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.2","cabal-install-3.0"]}}
     - compiler: ghc-8.0.2
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.2","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.2","cabal-install-3.0"]}}
     - compiler: ghc-7.10.3
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.3","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.3","cabal-install-3.0"]}}
     - compiler: ghc-7.8.4
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.4","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.4","cabal-install-3.0"]}}
     - compiler: ghc-7.6.3
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.3","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.3","cabal-install-3.0"]}}
     - compiler: ghc-7.4.2
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.4.2","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.4.2","cabal-install-3.0"]}}
     - compiler: ghc-7.2.2
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.2.2","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.2.2","cabal-install-3.0"]}}
     - compiler: ghc-7.0.4
-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.0.4","cabal-install-2.4"]}}
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.0.4","cabal-install-3.0"]}}
     - compiler: ghc-head
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-head","cabal-install-head"]}}
   allow_failures:
     - compiler: ghc-head
 before_install:
   - |
-    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      sudo add-apt-repository -y ppa:hvr/ghcjs;
-      curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
-      sudo apt-add-repository 'https://deb.nodesource.com/node_8.x xenial main'
-      sudo apt-get update;
-      sudo apt-get install $CC cabal-install-3.0 nodejs;
-    fi
-  - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
-  - WITHCOMPILER="-w $HC"
-  - |
     if echo $CC | grep -q ghcjs; then
-        GHCJS=true
-        HC=${HC}js
-        WITHCOMPILER="--ghcjs ${WITHCOMPILER}js"
+        GHCJS=true;
     else
         GHCJS=false;
     fi
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      if $GHCJS ; then sudo add-apt-repository -y ppa:hvr/ghcjs ; fi;
+      if $GHCJS ; then curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add - ; fi;
+      if $GHCJS ; then sudo apt-add-repository 'https://deb.nodesource.com/node_8.x xenial main' ; fi;
+      if $GHCJS ; then sudo apt-get update ; fi;
+      sudo apt-get install $CC;
+      if $GHCJS ; then sudo apt-get install -y nodejs cabal-install-3.0 ; fi;
+    fi
+  - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
+  - WITHCOMPILER="-w $HC"
+  - if $GHCJS ; then HC=${HC}js ; fi
+  - if $GHCJS ; then WITHCOMPILER="--ghcjs ${WITHCOMPILER}js" ; fi
+  - HADDOCK=$(echo "/opt/$CC/bin/haddock" | sed 's/-/\//')
   - if $GHCJS ; then sudo apt-get install -y ghc-8.4.4 ; fi
   - if $GHCJS ; then PATH="/opt/ghc/8.4.4/bin:$PATH" ; fi
   - HCPKG="$HC-pkg"
@@ -145,11 +146,13 @@ install:
     echo "              f76d08be13e9a61a377a85e2fb63f4c5435d40f8feb3e12eb05905edb8cdea89" >> $CABALHOME/config
     echo "   key-threshold: 3"                                                            >> $CABALHOME/config
     fi
+  - |
+    echo "program-default-options"                >> $CABALHOME/config
+    echo "  ghc-options: $GHCJOBS +RTS -M6G -RTS" >> $CABALHOME/config
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if ! $GHCJS && [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-install $WITHCOMPILER -j2 doctest --constraint='doctest ==0.16.*' | color_cabal_output ; fi
-  - if $GHCJS ; then (cd /tmp && ${CABAL} v2-install -w ghc-8.4.4 happy) ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80000 ] && [ $HCNUMVER -lt 80800 ] ; then (cd /tmp && ${CABAL} v2-install $WITHCOMPILER -j2 doctest --constraint='doctest ==0.16.*' | color_cabal_output) ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
@@ -197,7 +200,7 @@ script:
   # cabal check...
   - (cd ${PKGDIR_splitmix} && ${CABAL} -vnormal check)
   # haddock...
-  - if ! $GHCJS ; then ${CABAL} v2-haddock $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output ; fi
+  - if ! $GHCJS ; then ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all | color_cabal_output ; fi
   # Building without installed constraints for packages in global-db...
   - rm -f cabal.project.local
   - ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks all | color_cabal_output

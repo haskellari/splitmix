@@ -9,9 +9,9 @@
 --  but GHC-7.0 and GHC-7.2 have slow implementation, as there
 --  are no native 'popCount'.
 --
-{-# LANGUAGE CPP          #-}
+{-# LANGUAGE CPP         #-}
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy  #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 module System.Random.SplitMix32 (
     SMGen,
