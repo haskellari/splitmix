@@ -1,7 +1,7 @@
 branches: master
 ghc-head: True
-doctest: <8.8
-benchmarks: >=7.4 && <8.8
+benchmarks: >=7.4
+ghcjs-tests: True
 
 constraint-set no-random
   constraints: splitmix -random
