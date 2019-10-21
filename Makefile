@@ -30,3 +30,7 @@ montecarlo-pi-time :
 
 generate-mix32 :
 	cabal v2-build generate-mix32 && $$(cabal-plan list-bin generate-mix32)
+
+doctest :
+	perl -i -e 'while (<ARGV>) { print unless /package-id base-compat-\d+(\.\d+)*/; }' .ghc.environment.*
+	doctest src
