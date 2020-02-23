@@ -41,7 +41,9 @@ module System.Random.SplitMix (
     splitSMGen,
     -- * Generation
     bitmaskWithRejection32,
+    bitmaskWithRejection32',
     bitmaskWithRejection64,
+    bitmaskWithRejection64',
     -- * Initialisation
     mkSMGen,
     initSMGen,
@@ -245,6 +247,36 @@ bitmaskWithRejection64 range = go where
     go g = let (x, g') = nextWord64 g
                x' = x .&. mask
            in if x' >= range
+              then go g'
+              else (x', g')
+
+-- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
+--
+-- @since 0.0.4
+bitmaskWithRejection32' :: Word32 -> SMGen -> (Word32, SMGen)
+bitmaskWithRejection32' range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord32 g
+               x' = x .&. mask
+           in if x' > range
+              then go g'
+              else (x', g')
+
+-- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
+--
+-- @bitmaskWithRejection64' w64@ generates random numbers in closed-closed
+-- range of @[0, w64]@.
+--
+-- >>> take 20 $ unfoldr (Just . bitmaskWithRejection64' 5) (mkSMGen 1337)
+-- [3,1,4,1,2,3,1,1,0,3,4,5,2,3,0,2,3,5,3,4]
+--
+-- @since 0.0.4
+bitmaskWithRejection64' :: Word64 -> SMGen -> (Word64, SMGen)
+bitmaskWithRejection64' range = go where
+    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
+    go g = let (x, g') = nextWord64 g
+               x' = x .&. mask
+           in if x' > range
               then go g'
               else (x', g')
 
