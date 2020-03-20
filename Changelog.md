@@ -1,4 +1,11 @@
+# 0.0.5
+
+- Use smaller range in `bitmaskWithRejection32` and `64`,
+  when upper bound is 2^n - 1.
+  This changes generated values when they were on the boundary.
+
 # 0.0.4
+
 - Add `bitmaskWithRejection32'` and `bitmaskWithRejection64'`
   which generate numbers in closed range `[0, n]`.
   Unticked variants generate in closed-open range `[0, n)`.
