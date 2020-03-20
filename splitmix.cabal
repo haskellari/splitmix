@@ -1,6 +1,6 @@
 cabal-version:      >=1.10
 name:               splitmix
-version:            0.0.4
+version:            0.0.5
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
@@ -133,6 +133,17 @@ test-suite examples
   ghc-options:      -Wall
   hs-source-dirs:   tests
   main-is:          Examples.hs
+  build-depends:
+      base
+    , HUnit     ==1.3.1.2 || >=1.6.0.0 && <1.7
+    , splitmix
+
+test-suite splitmix-tests
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   tests
+  main-is:          Tests.hs
   build-depends:
       base
     , HUnit     ==1.3.1.2 || >=1.6.0.0 && <1.7

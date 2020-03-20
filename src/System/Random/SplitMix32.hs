@@ -222,13 +222,8 @@ mixGamma z0 =
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
-bitmaskWithRejection32 range = go where
-    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
-    go g = let (x, g') = nextWord32 g
-               x' = x .&. mask
-           in if x' >= range
-              then go g'
-              else (x', g')
+bitmaskWithRejection32 0 = error "bitmaskWithRejection32 0"
+bitmaskWithRejection32 n = bitmaskWithRejection32' (n - 1)
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
 --
@@ -239,13 +234,8 @@ bitmaskWithRejection32 range = go where
 -- [0,2,4,2,1,4,2,4,2,2,3,0,3,2,2,2,3,1,2,2]
 --
 bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
-bitmaskWithRejection64 range = go where
-    mask = complement zeroBits `shiftR` countLeadingZeros (range .|. 1)
-    go g = let (x, g') = nextWord64 g
-               x' = x .&. mask
-           in if x' >= range
-              then go g'
-              else (x', g')
+bitmaskWithRejection64 0 = error "bitmaskWithRejection64 0"
+bitmaskWithRejection64 n = bitmaskWithRejection64' (n - 1)
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 --
