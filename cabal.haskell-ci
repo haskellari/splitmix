@@ -1,5 +1,5 @@
 branches: master
-doctest: True
+doctest: <8.10
 ghc-head: True
 benchmarks: >=7.4
 ghcjs-tests: True
