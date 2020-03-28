@@ -31,7 +31,7 @@ test-suite generate-mix32
   main-is:          GenMix32.hs
   build-depends:
     , base
-    , base-compat   ^>=0.10.5
+    , base-compat   ^>=0.11.1
     , transformers
 
 executable splitmix-avalanche
