@@ -26,9 +26,12 @@
 --  but GHC-7.0 and GHC-7.2 have slow implementation, as there
 --  are no native 'popCount'.
 --
-{-# LANGUAGE CPP         #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE MagicHash     #-}
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE UnboxedTuples #-}
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Trustworthy   #-}
 #endif
 module System.Random.SplitMix (
     SMGen,
@@ -66,7 +69,9 @@ import qualified System.Random as R
 #endif
 
 #if !__GHCJS__
-import System.CPUTime (cpuTimePrecision, getCPUTime)
+import Data.Primitive.Types (Prim, alignment#, defaultSetByteArray#, defaultSetOffAddr#, indexByteArray#, indexOffAddr#, readByteArray#, readOffAddr#, setByteArray#, setOffAddr#, sizeOf#, writeByteArray#, writeOffAddr#)
+import GHC.Exts             (Int (..), Addr#, ByteArray#, Int#, MutableByteArray#, State#, (*#), (+#))
+import System.CPUTime       (cpuTimePrecision, getCPUTime)
 #endif
 
 -- $setup
@@ -334,4 +339,111 @@ mkSeedTime = do
 instance R.RandomGen SMGen where
     next = nextInt
     split = splitSMGen
+#endif
+
+-------------------------------------------------------------------------------
+-- Prim
+-------------------------------------------------------------------------------
+
+#if !__GHCJS__
+
+instance Prim SMGen where
+    sizeOf#         = sizeOf128#
+    alignment#      = alignment128#
+    indexByteArray# = indexByteArray128#
+    readByteArray#  = readByteArray128#
+    writeByteArray# = writeByteArray128#
+    setByteArray#   = setByteArray128#
+    indexOffAddr#   = indexOffAddr128#
+    readOffAddr#    = readOffAddr128#
+    writeOffAddr#   = writeOffAddr128#
+    setOffAddr#     = setOffAddr128#
+    {-# INLINE sizeOf# #-}
+    {-# INLINE alignment# #-}
+    {-# INLINE indexByteArray# #-}
+    {-# INLINE readByteArray# #-}
+    {-# INLINE writeByteArray# #-}
+    {-# INLINE setByteArray# #-}
+    {-# INLINE indexOffAddr# #-}
+    {-# INLINE readOffAddr# #-}
+    {-# INLINE writeOffAddr# #-}
+    {-# INLINE setOffAddr# #-}
+
+{-# INLINE sizeOf128# #-}
+sizeOf128# :: SMGen -> Int#
+sizeOf128# _ = 2# *# sizeOf# (undefined :: Word64)
+
+{-# INLINE alignment128# #-}
+alignment128# :: SMGen -> Int#
+alignment128# _ = 2# *# alignment# (undefined :: Word64)
+
+{-# INLINE indexByteArray128# #-}
+indexByteArray128# :: ByteArray# -> Int# -> SMGen
+indexByteArray128# arr# i# =
+    let i2# = 2# *# i#
+        x = indexByteArray# arr# (i2# +# unInt index1)
+        y = indexByteArray# arr# (i2# +# unInt index0)
+    in SMGen x y
+
+{-# INLINE readByteArray128# #-}
+readByteArray128# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, SMGen #)
+readByteArray128# arr# i# =
+    \s0 -> case readByteArray# arr# (i2# +# unInt index1) s0 of
+        (# s1, x #) -> case readByteArray# arr# (i2# +# unInt index0) s1 of
+            (# s2, y #) -> (# s2, SMGen x y #)
+    where i2# = 2# *# i#
+
+{-# INLINE writeByteArray128# #-}
+writeByteArray128# :: MutableByteArray# s -> Int# -> SMGen -> State# s -> State# s
+writeByteArray128# arr# i# (SMGen a b) =
+    \s0 -> case writeByteArray# arr# (i2# +# unInt index1) a s0 of
+        s1 -> case writeByteArray# arr# (i2# +# unInt index0) b s1 of
+            s2 -> s2
+    where i2# = 2# *# i#
+
+{-# INLINE setByteArray128# #-}
+setByteArray128# :: MutableByteArray# s -> Int# -> Int# -> SMGen -> State# s -> State# s
+setByteArray128# = defaultSetByteArray#
+
+{-# INLINE indexOffAddr128# #-}
+indexOffAddr128# :: Addr# -> Int# -> SMGen
+indexOffAddr128# addr# i# =
+    let i2# = 2# *# i#
+        x = indexOffAddr# addr# (i2# +# unInt index1)
+        y = indexOffAddr# addr# (i2# +# unInt index0)
+    in SMGen x y
+
+{-# INLINE readOffAddr128# #-}
+readOffAddr128# :: Addr# -> Int# -> State# s -> (# State# s, SMGen #)
+readOffAddr128# addr# i# =
+    \s0 -> case readOffAddr# addr# (i2# +# unInt index1) s0 of
+        (# s1, x #) -> case readOffAddr# addr# (i2# +# unInt index0) s1 of
+            (# s2, y #) -> (# s2, SMGen x y #)
+    where i2# = 2# *# i#
+
+{-# INLINE writeOffAddr128# #-}
+writeOffAddr128# :: Addr# -> Int# -> SMGen -> State# s -> State# s
+writeOffAddr128# addr# i# (SMGen a b) =
+    \s0 -> case writeOffAddr# addr# (i2# +# unInt index1) a s0 of
+            s1 -> case writeOffAddr# addr# (i2# +# unInt index0) b s1 of
+                s2 -> s2
+    where i2# = 2# *# i#
+
+{-# INLINE setOffAddr128# #-}
+setOffAddr128# :: Addr# -> Int# -> Int# -> SMGen -> State# s -> State# s
+setOffAddr128# = defaultSetOffAddr#
+
+unInt :: Int -> Int#
+unInt (I# i#) = i#
+
+-- Use these indices to get the peek/poke ordering endian correct.
+index0, index1 :: Int
+#if WORDS_BIGENDIAN
+index0 = 1
+index1 = 0
+#else
+index0 = 0
+index1 = 1
+#endif
+
 #endif
