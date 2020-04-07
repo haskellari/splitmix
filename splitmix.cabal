@@ -29,7 +29,7 @@ description:
 license:            BSD3
 license-file:       LICENSE
 maintainer:         Oleg Grenrus <oleg.grenrus@iki.fi>
-bug-reports:        https://github.com/phadej/splitmix#issues
+bug-reports:        https://github.com/phadej/splitmix/issues
 category:           System, Random
 build-type:         Simple
 tested-with:
