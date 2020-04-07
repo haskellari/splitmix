@@ -69,8 +69,13 @@ import qualified System.Random as R
 #endif
 
 #if !__GHCJS__
-import Data.Primitive.Types (Prim, alignment#, defaultSetByteArray#, defaultSetOffAddr#, indexByteArray#, indexOffAddr#, readByteArray#, readOffAddr#, setByteArray#, setOffAddr#, sizeOf#, writeByteArray#, writeOffAddr#)
-import GHC.Exts             (Int (..), Addr#, ByteArray#, Int#, MutableByteArray#, State#, (*#), (+#))
+import Data.Primitive.Types
+       (Prim, alignment#, defaultSetByteArray#, defaultSetOffAddr#,
+       indexByteArray#, indexOffAddr#, readByteArray#, readOffAddr#,
+       setByteArray#, setOffAddr#, sizeOf#, writeByteArray#, writeOffAddr#)
+import GHC.Exts
+       (Addr#, ByteArray#, Int (..), Int#, MutableByteArray#, State#, (*#),
+       (+#))
 import System.CPUTime       (cpuTimePrecision, getCPUTime)
 #endif
 
