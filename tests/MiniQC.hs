@@ -3,6 +3,7 @@
 module MiniQC where
 
 import Control.Monad                  (ap)
+import Data.Int                       (Int32, Int64)
 import Data.Word                      (Word32, Word64)
 import Prelude ()
 import Prelude.Compat
@@ -33,6 +34,10 @@ instance Arbitrary Word32 where
     arbitrary = Gen $ \g -> fst (nextWord32 g)
 instance Arbitrary Word64 where
     arbitrary = Gen $ \g -> fst (nextWord64 g)
+instance Arbitrary Int32 where
+    arbitrary = Gen $ \g -> fromIntegral (fst (nextWord32 g))
+instance Arbitrary Int64 where
+    arbitrary = Gen $ \g -> fromIntegral (fst (nextWord64 g))
 instance Arbitrary Double where
     arbitrary = Gen $ \g -> fst (nextDouble g)
 
