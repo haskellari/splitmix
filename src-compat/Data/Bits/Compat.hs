@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
 module Data.Bits.Compat (
     popCount,
     zeroBits,
@@ -17,7 +16,7 @@ import Data.Bits
 popCount :: Bits a => a -> Int
 popCount = go 0
  where
-   go !c 0 = c
+   go c 0 = c `seq` c
    go c w = go (c+1) (w .&. (w - 1)) -- clear the least significant
 {-# INLINE popCount #-}
 #endif

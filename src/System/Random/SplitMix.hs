@@ -53,13 +53,16 @@ module System.Random.SplitMix (
     unseedSMGen,
     ) where
 
-import Control.DeepSeq       (NFData (..))
 import Data.Bits             (complement, shiftL, shiftR, xor, (.&.), (.|.))
 import Data.Bits.Compat      (countLeadingZeros, popCount, zeroBits)
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
+
+#ifndef HUGS_COMPAT
+import Control.DeepSeq       (NFData (..))
+#endif
 
 #ifdef MIN_VERSION_random
 import qualified System.Random as R
@@ -82,8 +85,10 @@ import System.CPUTime (cpuTimePrecision, getCPUTime)
 data SMGen = SMGen !Word64 !Word64 -- seed and gamma; gamma is odd
   deriving Show
 
+#ifndef HUGS_COMPAT
 instance NFData SMGen where
     rnf (SMGen _ _) = ()
+#endif
 
 -- |
 --
@@ -117,7 +122,7 @@ instance Read SMGen where
 nextWord64 :: SMGen -> (Word64, SMGen)
 nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
   where
-    seed' = seed + gamma
+    seed' = seed `plus` gamma
 
 -- | Generate 'Word32' by truncating 'nextWord64'.
 --
@@ -162,8 +167,8 @@ splitSMGen :: SMGen -> (SMGen, SMGen)
 splitSMGen (SMGen seed gamma) =
     (SMGen seed'' gamma, SMGen (mix64 seed') (mixGamma seed''))
   where
-    seed'  = seed + gamma
-    seed'' = seed' + gamma
+    seed'  = seed `plus` gamma
+    seed'' = seed' `plus` gamma
 
 -------------------------------------------------------------------------------
 -- Algorithm
@@ -214,7 +219,8 @@ shiftXor :: Int -> Word64 -> Word64
 shiftXor n w = w `xor` (w `shiftR` n)
 
 shiftXorMultiply :: Int -> Word64 -> Word64 -> Word64
-shiftXorMultiply n k w = shiftXor n w * k
+shiftXorMultiply n k w = shiftXor n w `mult` k
+
 
 -------------------------------------------------------------------------------
 -- Generation
@@ -300,7 +306,7 @@ unseedSMGen (SMGen seed gamma) = (seed, gamma)
 -- SMGen 9297814886316923340 13679457532755275413
 --
 mkSMGen :: Word64 -> SMGen
-mkSMGen s = SMGen (mix64 s) (mixGamma (s + goldenGamma))
+mkSMGen s = SMGen (mix64 s) (mixGamma (s `plus` goldenGamma))
 
 -- | Initialize 'SMGen' using system time.
 initSMGen :: IO SMGen
@@ -334,4 +340,24 @@ mkSeedTime = do
 instance R.RandomGen SMGen where
     next = nextInt
     split = splitSMGen
+#endif
+
+-------------------------------------------------------------------------------
+-- Hugs
+-------------------------------------------------------------------------------
+
+mult, plus :: Word64 -> Word64 -> Word64
+#ifndef HUGS_COMPAT
+mult = (*)
+plus = (+)
+#else
+-- Hugs defines: 
+--
+--    x * y         = fromInteger (toInteger x * toInteger y)
+--    x + y         = fromInteger (toInteger x + toInteger y)
+--
+-- which obviously overflows in our use cases, as fromInteger doesn't truncate
+--
+mult x y = fromInteger ((toInteger x * toInteger y) `mod` 18446744073709551616)
+plus x y = fromInteger ((toInteger x + toInteger y) `mod` 18446744073709551616)
 #endif

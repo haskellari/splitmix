@@ -3,3 +3,5 @@ dist-newstyle
 .ghc.environment.*
 .stack-work
 bench.html
+splitmix-hugs
+hugs.output

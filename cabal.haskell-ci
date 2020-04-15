@@ -1,8 +1,14 @@
 branches: master
-doctest: <8.10
+doctest: True
 ghc-head: True
 benchmarks: >=7.4
 ghcjs-tests: True
+apt: hugs libhugs-time-bundled
 
 constraint-set no-random
   constraints: splitmix -random
+
+raw-travis:
+  export CABAL
+  export HC
+  if [ ! $GHCJS ]; then (cd ${PKGDIR_splitmix} && sh test-hugs.sh); fi
