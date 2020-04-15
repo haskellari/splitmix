@@ -50,6 +50,8 @@ tested-with:
 extra-source-files:
   README.md
   Changelog.md
+  make-hugs.sh
+  test-hugs.sh
 
 flag optimised-mixer
   description: Use JavaScript for mix32

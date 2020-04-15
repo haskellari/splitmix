@@ -36,7 +36,6 @@ module System.Random.SplitMix32 (
     unseedSMGen,
     ) where
 
-import Control.DeepSeq       (NFData (..))
 import Data.Bits             (complement, shiftL, shiftR, xor, (.&.), (.|.))
 import Data.Bits.Compat
        (countLeadingZeros, finiteBitSize, popCount, zeroBits)
@@ -44,6 +43,10 @@ import Data.IORef            (IORef, atomicModifyIORef, newIORef)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
+
+#ifndef HUGS_COMPAT
+import Control.DeepSeq       (NFData (..))
+#endif
 
 #ifdef MIN_VERSION_random
 import qualified System.Random as R
@@ -66,8 +69,10 @@ import System.CPUTime (cpuTimePrecision, getCPUTime)
 data SMGen = SMGen {-# UNPACK #-} !Word32 {-# UNPACK #-} !Word32 -- seed and gamma; gamma is odd
   deriving Show
 
+#ifndef HUGS_COMPAT
 instance NFData SMGen where
     rnf (SMGen _ _) = ()
+#endif
 
 -- |
 --
