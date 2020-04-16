@@ -1,6 +1,6 @@
 cabal-version:      >=1.10
 name:               splitmix
-version:            0.0.6
+version:            0.0.5
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
@@ -43,7 +43,7 @@ tested-with:
      || ==8.2.2
      || ==8.4.4
      || ==8.6.5
-     || ==8.8.2
+     || ==8.8.3
      || ==8.10.1
   , GHCJS ==8.4
 

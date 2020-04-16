@@ -1,9 +1,6 @@
-# 0.0.6
-
-- Add `nextInteger`
-
 # 0.0.5
 
+- Add `nextInteger`
 - Use smaller range in `bitmaskWithRejection32` and `64`,
   when upper bound is 2^n - 1.
   This changes generated values when they were on the boundary.
