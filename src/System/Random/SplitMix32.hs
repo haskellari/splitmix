@@ -45,11 +45,11 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
-#if defined(HUGS_COMPAT) || !MIN_VERSION_base(4,8,0)
+#if defined(__HUGS__) || !MIN_VERSION_base(4,8,0)
 import Data.Word (Word)
 #endif
 
-#ifndef HUGS_COMPAT
+#ifndef __HUGS__
 import Control.DeepSeq (NFData (..))
 #endif
 
@@ -74,7 +74,7 @@ import System.CPUTime (cpuTimePrecision, getCPUTime)
 data SMGen = SMGen {-# UNPACK #-} !Word32 {-# UNPACK #-} !Word32 -- seed and gamma; gamma is odd
   deriving Show
 
-#ifndef HUGS_COMPAT
+#ifndef __HUGS__
 instance NFData SMGen where
     rnf (SMGen _ _) = ()
 #endif

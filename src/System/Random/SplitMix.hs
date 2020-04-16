@@ -61,11 +61,11 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
-#if defined(HUGS_COMPAT) || !MIN_VERSION_base(4,8,0)
+#if defined(__HUGS__) || !MIN_VERSION_base(4,8,0)
 import Data.Word (Word)
 #endif
 
-#ifndef HUGS_COMPAT
+#ifndef __HUGS__
 import Control.DeepSeq (NFData (..))
 #endif
 
@@ -90,7 +90,7 @@ import System.CPUTime (cpuTimePrecision, getCPUTime)
 data SMGen = SMGen !Word64 !Word64 -- seed and gamma; gamma is odd
   deriving Show
 
-#ifndef HUGS_COMPAT
+#ifndef __HUGS__
 instance NFData SMGen where
     rnf (SMGen _ _) = ()
 #endif
@@ -133,20 +133,36 @@ nextWord64 (SMGen seed gamma) = (mix64 seed', SMGen seed' gamma)
 --
 -- @since 0.0.3
 nextWord32 :: SMGen -> (Word32, SMGen)
-nextWord32 g = (fromIntegral w64, g') where
+nextWord32 g =
+#ifdef __HUGS__
+    (fromIntegral $ w64 .&. 0xffffffff, g')
+#else
+    (fromIntegral w64, g')
+#endif
+  where
     (w64, g') = nextWord64 g
 
 -- | Generate two 'Word32'.
 --
 -- @since 0.0.3
 nextTwoWord32 :: SMGen -> (Word32, Word32, SMGen)
-nextTwoWord32 g = (fromIntegral $ w64 `shiftR` 32, fromIntegral w64, g') where
+nextTwoWord32 g =
+#ifdef __HUGS__
+    (fromIntegral $ w64 `shiftR` 32, fromIntegral $ w64 .&. 0xffffffff, g')
+#else
+    (fromIntegral $ w64 `shiftR` 32, fromIntegral w64, g')
+#endif
+  where
     (w64, g') = nextWord64 g
 
 -- | Generate an 'Int'.
 nextInt :: SMGen -> (Int, SMGen)
 nextInt g = case nextWord64 g of
+#ifdef __HUGS__
+    (w64, g') -> (fromIntegral $ w64 `shiftR` 32, g')
+#else
     (w64, g') -> (fromIntegral w64, g')
+#endif
 
 -- | Generate a 'Double' in @[0, 1)@ range.
 --
@@ -396,7 +412,7 @@ instance R.RandomGen SMGen where
 -------------------------------------------------------------------------------
 
 mult, plus :: Word64 -> Word64 -> Word64
-#ifndef HUGS_COMPAT
+#ifndef __HUGS__
 mult = (*)
 plus = (+)
 #else

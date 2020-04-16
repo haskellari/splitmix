@@ -23,7 +23,7 @@ find "$TOPDIR/src" "$TOPDIR/src-compat" -name '*.hs' | while read -r src; do
    echo "Processing $src -> $tgt"
 
    mkdir -p "$(dirname "$tgt")"
-   cpphs --noline -DHUGS_COMPAT=1 "$src" > "$tgt"
+   cpphs --noline -D__HUGS__=1 "$src" > "$tgt"
 done
 
 echo "A Hugs-compatible version of splitmix is now"
