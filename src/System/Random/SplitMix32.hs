@@ -21,6 +21,7 @@ module System.Random.SplitMix32 (
     nextInt,
     nextDouble,
     nextFloat,
+    nextInteger,
     splitSMGen,
     -- * Generation
     bitmaskWithRejection32,
@@ -44,8 +45,12 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
 
+#if defined(HUGS_COMPAT) || !MIN_VERSION_base(4,8,0)
+import Data.Word (Word)
+#endif
+
 #ifndef HUGS_COMPAT
-import Control.DeepSeq       (NFData (..))
+import Control.DeepSeq (NFData (..))
 #endif
 
 #ifdef MIN_VERSION_random
@@ -151,6 +156,50 @@ nextDouble g = case nextWord64 g of
 nextFloat :: SMGen -> (Float, SMGen)
 nextFloat g = case nextWord32 g of
     (w32, g') -> (fromIntegral (w32 `shiftR` 8) * floatUlp, g')
+
+-- | Generate an 'Integer' in closed @[x, y]@ range.
+nextInteger :: Integer -> Integer -> SMGen -> (Integer, SMGen)
+nextInteger lo hi g = case compare lo hi of
+    LT -> let (i, g') = nextInteger' (hi - lo) g in (i + lo, g')
+    EQ -> (lo, g)
+    GT -> let (i, g') = nextInteger' (lo - hi) g in (i + hi, g')
+
+-- invariant: first argument is positive
+-- Essentially bitmaskWithRejection but for Integers.
+--
+nextInteger' :: Integer -> SMGen -> (Integer, SMGen)
+nextInteger' range = loop
+  where
+    leadMask :: Word32
+    restDigits :: Word
+    (leadMask, restDigits) = go 0 range where
+        go :: Word -> Integer -> (Word32, Word)
+        go n x | x < two32 = (complement zeroBits `shiftR` countLeadingZeros (fromInteger x :: Word32), n)
+               | otherwise = go (n + 1) (x `shiftR` 32)
+
+    generate :: SMGen -> (Integer, SMGen)
+    generate g0 =
+        let (x, g') = nextWord32 g0
+            x' = x .&. leadMask
+        in go (fromIntegral x') restDigits g'
+      where
+        go :: Integer -> Word -> SMGen -> (Integer, SMGen)
+        go acc 0 g = acc `seq` (acc, g)
+        go acc n g =
+            let (x, g') = nextWord32 g
+            in go (acc * two32 + fromIntegral x) (n - 1) g'
+
+    loop g = let (x, g') = generate g
+             in if x > range
+                then loop g'
+                else (x, g')
+
+two32 :: Integer
+two32 = 2 ^ (32 :: Int)
+
+-------------------------------------------------------------------------------
+-- Splitting
+-------------------------------------------------------------------------------
 
 -- | Split a generator into a two uncorrelated generators.
 splitSMGen :: SMGen -> (SMGen, SMGen)

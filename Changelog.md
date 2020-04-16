@@ -1,3 +1,7 @@
+# 0.0.6
+
+- Add `nextInteger`
+
 # 0.0.5
 
 - Use smaller range in `bitmaskWithRejection32` and `64`,
