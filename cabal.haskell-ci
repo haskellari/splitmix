@@ -5,9 +5,6 @@ benchmarks: >=7.4
 ghcjs-tests: True
 apt: hugs libhugs-time-bundled
 
-constraint-set no-random
-  constraints: splitmix -random
-
 raw-travis:
   export CABAL
   export HC

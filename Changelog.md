@@ -1,3 +1,8 @@
+# 0.1
+
+- Drop `random` dependency unconditionally.
+  https://github.com/phadej/splitmix/issues/34
+
 # 0.0.5
 
 - Add `nextInteger`
