@@ -8,7 +8,6 @@ import Data.Bits.Compat
 import Data.List        (unfoldr)
 import Data.Word        (Word32, Word64)
 
-import qualified System.Random            as R
 import qualified System.Random.SplitMix32 as SM
 
 #if defined(__GHCJS__)
@@ -21,7 +20,7 @@ main :: IO ()
 main = do
     gen <- SM.newSMGen
 
-    bench gen (\g h -> R.randomR (0, pred h) g)
+    -- bench gen (\g h -> R (0, pred h) g)
     bench gen classicMod
     bench gen intMult
     bench gen bitmaskWithRejection

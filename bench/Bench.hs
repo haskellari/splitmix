@@ -16,36 +16,37 @@ import qualified System.Random.SplitMix32 as SM32
 -------------------------------------------------------------------------------
 
 -- infinite list
-genList :: R.RandomGen g => g -> [Int]
-genList = unfoldr (Just . R.next)
+genList :: (g -> (Int, g)) -> g -> [Int]
+genList next = unfoldr (Just . next)
 
 -- truncated
-genListN :: R.RandomGen g => g -> [Int]
-genListN = take 2048 . genList
+genListN :: (g -> (Int, g)) -> g -> [Int]
+genListN next = take 2048 . genList next
 
 randomList :: Int -> [Int]
-randomList = genListN . R.mkStdGen
+randomList = genListN R.random . R.mkStdGen
 
 tfRandomList :: Word64 -> [Int]
-tfRandomList w64 = genListN $ TF.seedTFGen (w64, w64, w64, w64)
+tfRandomList w64 = genListN R.random $ TF.seedTFGen (w64, w64, w64, w64)
 
 splitMixList :: Word64 -> [Int]
-splitMixList w64 = genListN $ SM.mkSMGen w64
+splitMixList w64 = genListN SM.nextInt $ SM.mkSMGen w64
 
 splitMix32List :: Word64 -> [Int]
-splitMix32List w64 = genListN $ SM32.mkSMGen $ fromIntegral w64
+splitMix32List w64 = genListN SM32.nextInt $ SM32.mkSMGen $ fromIntegral w64
 
 -------------------------------------------------------------------------------
 -- Tree
 -------------------------------------------------------------------------------
 
-genTree :: R.RandomGen g => g -> T.Tree Int
-genTree g = case R.next g of
-    ~(i, g') -> T.Node i $ case R.split g' of
-        (ga, gb) -> [genTree ga, genTree gb]
+genTree :: (g -> (Int, g)) -> (g -> (g, g)) -> g -> T.Tree Int
+genTree next split = go where
+    go g = case next g of
+        ~(i, g') -> T.Node i $ case split g' of
+            (ga, gb) -> [go ga, go gb]
 
-genTreeN :: R.RandomGen g => g -> T.Tree Int
-genTreeN = cutTree 9 . genTree
+genTreeN :: (g -> (Int, g)) -> (g -> (g, g)) -> g -> T.Tree Int
+genTreeN next split = cutTree 9 . genTree next split
   where
     cutTree :: Int -> T.Tree a -> T.Tree a
     cutTree n (T.Node x forest)
@@ -53,16 +54,16 @@ genTreeN = cutTree 9 . genTree
         | otherwise = T.Node x (map (cutTree (n - 1)) forest)
 
 randomTree :: Int -> T.Tree Int
-randomTree = genTreeN . R.mkStdGen
+randomTree = genTreeN R.next R.split . R.mkStdGen
 
 tfRandomTree :: Word64 -> T.Tree Int
-tfRandomTree w64 = genTreeN $ TF.seedTFGen (w64, w64, w64, w64)
+tfRandomTree w64 = genTreeN R.next R.split $ TF.seedTFGen (w64, w64, w64, w64)
 
 splitMixTree :: Word64 -> T.Tree Int
-splitMixTree w64 = genTreeN $ SM.mkSMGen w64
+splitMixTree w64 = genTreeN SM.nextInt SM.splitSMGen $ SM.mkSMGen w64
 
 splitMix32Tree :: Word64 -> T.Tree Int
-splitMix32Tree w64 = genTreeN $ SM32.mkSMGen $ fromIntegral w64
+splitMix32Tree w64 = genTreeN SM32.nextInt SM32.splitSMGen $ SM32.mkSMGen $ fromIntegral w64
 
 -------------------------------------------------------------------------------
 -- List Word64
@@ -92,14 +93,14 @@ splitMix32List64 w64 = genListN64 SM32.nextWord64 $ SM32.mkSMGen $ fromIntegral 
 -- Tree Word64
 -------------------------------------------------------------------------------
 
-genTree64 :: R.RandomGen g => (g -> (Word64, g)) -> g -> T.Tree Word64
-genTree64 r = go where
+genTree64 ::(g -> (Word64, g)) -> (g -> (g, g)) -> g -> T.Tree Word64
+genTree64 r split = go where
     go g = case r g of
-        ~(i, g') -> T.Node i $ case R.split g' of
+        ~(i, g') -> T.Node i $ case split g' of
             (ga, gb) -> [go ga, go gb]
 
-genTreeN64 :: R.RandomGen g => (g -> (Word64, g)) -> g -> T.Tree Word64
-genTreeN64 r = cutTree 9 . genTree64 r
+genTreeN64 :: (g -> (Word64, g)) -> (g -> (g, g)) -> g -> T.Tree Word64
+genTreeN64 r split = cutTree 9 . genTree64 r split
   where
     cutTree :: Word64 -> T.Tree a -> T.Tree a
     cutTree n (T.Node x forest)
@@ -107,16 +108,16 @@ genTreeN64 r = cutTree 9 . genTree64 r
         | otherwise = T.Node x (map (cutTree (n - 1)) forest)
 
 randomTree64 :: Int -> T.Tree Word64
-randomTree64 = genTreeN64 R.random . R.mkStdGen
+randomTree64 = genTreeN64 R.random R.split . R.mkStdGen
 
 tfRandomTree64 :: Word64 -> T.Tree Word64
-tfRandomTree64 w64 = genTreeN64 TF.random $ TF.seedTFGen (w64, w64, w64, w64)
+tfRandomTree64 w64 = genTreeN64 TF.random R.split $ TF.seedTFGen (w64, w64, w64, w64)
 
 splitMixTree64 :: Word64 -> T.Tree Word64
-splitMixTree64 w64 = genTreeN64 SM.nextWord64 $ SM.mkSMGen w64
+splitMixTree64 w64 = genTreeN64 SM.nextWord64 SM.splitSMGen $ SM.mkSMGen w64
 
 splitMix32Tree64 :: Word64 -> T.Tree Word64
-splitMix32Tree64 w64 = genTreeN64 SM32.nextWord64 $ SM32.mkSMGen $ fromIntegral w64
+splitMix32Tree64 w64 = genTreeN64 SM32.nextWord64 SM32.splitSMGen $ SM32.mkSMGen $ fromIntegral w64
 
 -------------------------------------------------------------------------------
 -- Main

@@ -53,10 +53,6 @@ import Data.Word (Word)
 import Control.DeepSeq (NFData (..))
 #endif
 
-#ifdef MIN_VERSION_random
-import qualified System.Random as R
-#endif
-
 #if !__GHCJS__
 import System.CPUTime (cpuTimePrecision, getCPUTime)
 #endif
@@ -375,13 +371,3 @@ mkSeedTime = do
     let hi = fromIntegral (cpu `div` cpuTimePrecision) :: Word32
 #endif
     return $ fromIntegral hi `shiftL` 32 .|. fromIntegral lo
-
--------------------------------------------------------------------------------
--- System.Random
--------------------------------------------------------------------------------
-
-#ifdef MIN_VERSION_random
-instance R.RandomGen SMGen where
-    next = nextInt
-    split = splitSMGen
-#endif

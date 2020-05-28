@@ -8,7 +8,7 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.10
+# version: 0.10.1
 #
 version: ~> 1.0
 language: c
@@ -211,14 +211,10 @@ script:
   # Building without installed constraints for packages in global-db...
   - rm -f cabal.project.local
   - ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks all
-  # Constraint sets
-  - rm -rf cabal.project.local
-  # Constraint set no-random
-  - ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks --constraint='splitmix -random' all
   # Raw travis commands
   - export CABAL
   - export HC
   - if [ ! $GHCJS ]; then (cd ${PKGDIR_splitmix} && sh test-hugs.sh); fi
 
-# REGENDATA ("0.10",["--config=cabal.haskell-ci","splitmix.cabal"])
+# REGENDATA ("0.10.1",["--config=cabal.haskell-ci","splitmix.cabal"])
 # EOF
