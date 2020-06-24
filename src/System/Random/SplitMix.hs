@@ -289,6 +289,9 @@ shiftXorMultiply n k w = shiftXor n w `mult` k
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 --
+-- @bitmaskWithRejection32 w32@ generates random numbers in closed-open
+-- range of @[0, w32)@.
+--
 -- @since 0.0.3
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
 bitmaskWithRejection32 0 = error "bitmaskWithRejection32 0"
@@ -308,6 +311,9 @@ bitmaskWithRejection64 0 = error "bitmaskWithRejection64 0"
 bitmaskWithRejection64 n = bitmaskWithRejection64' (n - 1)
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
+--
+-- @bitmaskWithRejection32' w32@ generates random numbers in closed-closed
+-- range of @[0, w32]@.
 --
 -- @since 0.0.4
 bitmaskWithRejection32' :: Word32 -> SMGen -> (Word32, SMGen)
