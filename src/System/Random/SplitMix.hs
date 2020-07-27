@@ -296,6 +296,7 @@ shiftXorMultiply n k w = shiftXor n w `mult` k
 bitmaskWithRejection32 :: Word32 -> SMGen -> (Word32, SMGen)
 bitmaskWithRejection32 0 = error "bitmaskWithRejection32 0"
 bitmaskWithRejection32 n = bitmaskWithRejection32' (n - 1)
+{-# INLINEABLE bitmaskWithRejection32 #-}
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
 --
@@ -309,6 +310,7 @@ bitmaskWithRejection32 n = bitmaskWithRejection32' (n - 1)
 bitmaskWithRejection64 :: Word64 -> SMGen -> (Word64, SMGen)
 bitmaskWithRejection64 0 = error "bitmaskWithRejection64 0"
 bitmaskWithRejection64 n = bitmaskWithRejection64' (n - 1)
+{-# INLINEABLE bitmaskWithRejection64 #-}
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word32'.
 --
@@ -324,6 +326,7 @@ bitmaskWithRejection32' range = go where
            in if x' > range
               then go g'
               else (x', g')
+{-# INLINEABLE bitmaskWithRejection32' #-}
 
 -- | /Bitmask with rejection/ method of generating subrange of 'Word64'.
 --
@@ -342,6 +345,7 @@ bitmaskWithRejection64' range = go where
            in if x' > range
               then go g'
               else (x', g')
+{-# INLINEABLE bitmaskWithRejection64' #-}
 
 
 -------------------------------------------------------------------------------
