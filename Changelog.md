@@ -1,3 +1,8 @@
+# 0.1.0.1
+
+- Add `INLINEABLE` pragmas to `bitmaskWithRejection*` functions
+- Support GHC-9.0
+
 # 0.1
 
 - Drop `random` dependency unconditionally.
