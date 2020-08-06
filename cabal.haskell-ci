@@ -5,6 +5,10 @@ benchmarks: >=7.4
 ghcjs-tests: True
 apt: hugs libhugs-time-bundled
 
+constraint-set time-1.10
+  ghc: >=8.0
+  constraints: time ^>=1.10
+
 raw-travis:
   export CABAL
   export HC

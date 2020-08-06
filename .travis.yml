@@ -8,7 +8,7 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.10.1
+# version: 0.10.2
 #
 version: ~> 1.0
 language: c
@@ -147,7 +147,7 @@ install:
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if ! $GHCJS && [ $HCNUMVER -ge 80000 ] ; then ${CABAL} v2-install $WITHCOMPILER --ignore-project -j2 doctest --constraint='doctest ^>=0.16.3' ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80000 ] ; then ${CABAL} v2-install $WITHCOMPILER --ignore-project -j2 doctest --constraint='doctest ^>=0.17' ; fi
   - if $GHCJS ; then ${CABAL} v2-install -w ghc-8.4.4 --ignore-project cabal-plan --constraint='cabal-plan ^>=0.6.0.0' --constraint='cabal-plan +exe' ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
@@ -211,10 +211,14 @@ script:
   # Building without installed constraints for packages in global-db...
   - rm -f cabal.project.local
   - ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks all
+  # Constraint sets
+  - rm -rf cabal.project.local
+  # Constraint set time-1.10
+  - if $GHCJS || ! $GHCJS && [ $HCNUMVER -ge 80000 ] ; then ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.10' all ; fi
   # Raw travis commands
   - export CABAL
   - export HC
   - if [ ! $GHCJS ]; then (cd ${PKGDIR_splitmix} && sh test-hugs.sh); fi
 
-# REGENDATA ("0.10.1",["--config=cabal.haskell-ci","splitmix.cabal"])
+# REGENDATA ("0.10.2",["--config=cabal.haskell-ci","splitmix.cabal"])
 # EOF
