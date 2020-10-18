@@ -57,9 +57,10 @@ module System.Random.SplitMix (
 import Data.Bits             (complement, shiftL, shiftR, xor, (.&.), (.|.))
 import Data.Bits.Compat      (countLeadingZeros, popCount, zeroBits)
 import Data.IORef            (IORef, atomicModifyIORef, newIORef)
-import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word             (Word32, Word64)
 import System.IO.Unsafe      (unsafePerformIO)
+
+import System.Random.SplitMix.Init
 
 #if defined(__HUGS__) || !MIN_VERSION_base(4,8,0)
 import Data.Word (Word)
@@ -67,10 +68,6 @@ import Data.Word (Word)
 
 #ifndef __HUGS__
 import Control.DeepSeq (NFData (..))
-#endif
-
-#if !__GHCJS__
-import System.CPUTime (cpuTimePrecision, getCPUTime)
 #endif
 
 -- $setup
@@ -379,9 +376,9 @@ unseedSMGen (SMGen seed gamma) = (seed, gamma)
 mkSMGen :: Word64 -> SMGen
 mkSMGen s = SMGen (mix64 s) (mixGamma (s `plus` goldenGamma))
 
--- | Initialize 'SMGen' using system time.
+-- | Initialize 'SMGen' using entropy available on the system (time, ...)
 initSMGen :: IO SMGen
-initSMGen = fmap mkSMGen mkSeedTime
+initSMGen = fmap mkSMGen initialSeed
 
 -- | Derive a new generator instance from the global 'SMGen' using 'splitSMGen'.
 newSMGen :: IO SMGen
@@ -390,18 +387,6 @@ newSMGen = atomicModifyIORef theSMGen splitSMGen
 theSMGen :: IORef SMGen
 theSMGen = unsafePerformIO $ initSMGen >>= newIORef
 {-# NOINLINE theSMGen #-}
-
-mkSeedTime :: IO Word64
-mkSeedTime = do
-    now <- getPOSIXTime
-    let lo = truncate now :: Word32
-#if __GHCJS__
-    let hi = lo
-#else
-    cpu <- getCPUTime
-    let hi = fromIntegral (cpu `div` cpuTimePrecision) :: Word32
-#endif
-    return $ fromIntegral hi `shiftL` 32 .|. fromIntegral lo
 
 -------------------------------------------------------------------------------
 -- Hugs

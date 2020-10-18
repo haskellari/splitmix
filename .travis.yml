@@ -39,11 +39,11 @@ jobs:
     - compiler: ghcjs-8.4
       addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"},{"sourceline":"deb http://ppa.launchpad.net/hvr/ghcjs/ubuntu xenial main"},{"sourceline":"deb https://deb.nodesource.com/node_10.x xenial main","key_url":"https://deb.nodesource.com/gpgkey/nodesource.gpg.key"}],"packages":["ghcjs-8.4","cabal-install-3.4","ghc-8.4.4","nodejs","hugs","libhugs-time-bundled"]}}
       os: linux
-    - compiler: ghc-8.10.1
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.10.1","cabal-install-3.4","hugs","libhugs-time-bundled"]}}
+    - compiler: ghc-8.10.2
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.10.2","cabal-install-3.4","hugs","libhugs-time-bundled"]}}
       os: linux
-    - compiler: ghc-8.8.3
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.8.3","cabal-install-3.4","hugs","libhugs-time-bundled"]}}
+    - compiler: ghc-8.8.4
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.8.4","cabal-install-3.4","hugs","libhugs-time-bundled"]}}
       os: linux
     - compiler: ghc-8.6.5
       addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.6.5","cabal-install-3.4","hugs","libhugs-time-bundled"]}}
@@ -107,7 +107,7 @@ before_install:
   - BENCH=--enable-benchmarks
   - if ! $GHCJS && [ $HCNUMVER -lt 70400 ] ; then BENCH=--disable-benchmarks ; fi
   - HEADHACKAGE=false
-  - if ! $GHCJS && [ $HCNUMVER -gt 81001 ] ; then HEADHACKAGE=true ; fi
+  - if ! $GHCJS && [ $HCNUMVER -gt 81002 ] ; then HEADHACKAGE=true ; fi
   - rm -f $CABALHOME/config
   - |
     echo "verbose: normal +nowrap +markoutput"          >> $CABALHOME/config
