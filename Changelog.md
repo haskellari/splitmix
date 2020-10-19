@@ -1,3 +1,13 @@
+# 0.1.0.2
+
+- Drop `time` dependency in favour of handcoded initialization
+  - On Unix platforms we use `/dev/urandom` if it exists,
+    otherwise use `gettimeofday`, `clock` and `getpid`.
+  - On Windows we use `GetCurrentProcessID`, `GetCurrentThreadId()`,
+    `GetTickCount`, `GetSystemTime` and `QueryPerformanceCounter`.
+  - On GHCJS use `Math.random()`
+  - Using `time` is a fallback option (e.g. for Hugs).
+
 # 0.1.0.1
 
 - Add `INLINEABLE` pragmas to `bitmaskWithRejection*` functions
