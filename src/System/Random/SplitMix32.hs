@@ -371,4 +371,4 @@ theSMGen = unsafePerformIO $ initSMGen >>= newIORef
 initialSeed' :: IO Word32
 initialSeed' = do
     w64 <- initialSeed
-    return (fromIntegral (shiftL w64 32) `xor` fromIntegral w64)
+    return (fromIntegral (shiftR w64 32) `xor` fromIntegral w64)
