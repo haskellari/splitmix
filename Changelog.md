@@ -1,3 +1,14 @@
+# 0.1.0.3
+
+- Fix oops bugs in 0.1.0.2
+
+  - It's lowercase `windows.h`.
+    I blame Microsoft docs for using capital case `Windows.h` in the docs.
+    https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocessid
+
+  - accidental `shiftL` vs `shiftR` mixup for 32-bit generator initialization.
+    Doesn't affect Linux.
+
 # 0.1.0.2
 
 - Drop `time` dependency in favour of handcoded initialization
