@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <Windows.h>
+#include <windows.h>
 
 uint64_t splitmix_init() {
     /* Handy list at https://stackoverflow.com/a/3487338/1308058 */
