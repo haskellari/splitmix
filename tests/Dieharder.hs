@@ -201,6 +201,7 @@ readMaybe :: Read a => String -> Maybe a
 readMaybe s = case readEither s of
                 Left _  -> Nothing
                 Right a -> Just a
+
 -------------------------------------------------------------------------------
 -- Do it yourself command line parsing
 -------------------------------------------------------------------------------

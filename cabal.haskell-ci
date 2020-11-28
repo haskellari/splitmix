@@ -2,7 +2,7 @@ branches: master
 doctest: True
 benchmarks: >=7.4
 ghcjs-tests: True
-apt: hugs libhugs-time-bundled
+apt: hugs libhugs-time-bundled libtestu01-0-dev
 
 constraint-set time-1.10
   ghc: >=8.0
