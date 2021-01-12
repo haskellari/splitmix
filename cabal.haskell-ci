@@ -1,5 +1,6 @@
 branches: master
 doctest: True
+docspec: >=7.6
 benchmarks: >=7.4
 ghcjs-tests: True
 apt: hugs libhugs-time-bundled libtestu01-0-dev
