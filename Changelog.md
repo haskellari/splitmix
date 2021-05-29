@@ -1,3 +1,7 @@
+# 0.1.0.4
+
+- Add TestU01 test-suite
+
 # 0.1.0.3
 
 - Fix oops bugs in 0.1.0.2
