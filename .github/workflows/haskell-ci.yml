@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.13.20210529
+# version: 0.13.20210530
 #
-# REGENDATA ("0.13.20210529",["github","cabal.project"])
+# REGENDATA ("0.13.20210530",["github","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -123,7 +123,7 @@ jobs:
       - name: apt
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common libtinfo5
+          apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common libtinfo5 libnuma-dev
           if [ "${{ matrix.setup-method }}" = ghcup ]; then
             mkdir -p "$HOME/.ghcup/bin"
             curl -sL https://downloads.haskell.org/ghcup/0.1.14.1/x86_64-linux-ghcup-0.1.14.1 > "$HOME/.ghcup/bin/ghcup"
