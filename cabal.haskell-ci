@@ -6,7 +6,7 @@ ghcjs-tests: True
 apt: hugs libhugs-time-bundled libtestu01-0-dev
 
 -- 9.2 testing
-ghcup-jobs: >=9.2
+ghcup-jobs: >=7.10
 
 constraint-set time-1.10
   ghc: >=8.0
