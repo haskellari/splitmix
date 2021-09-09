@@ -46,7 +46,7 @@ tested-with:
      || ==8.8.4
      || ==8.10.4
      || ==9.0.1
-     || ==9.2.0.20210422
+     || ==9.2.0.20210821
   , GHCJS ==8.4
 
 extra-source-files:
@@ -169,7 +169,7 @@ test-suite splitmix-tests
 
   build-depends:
       base
-    , base-compat           >=0.11.1  && <0.12
+    , base-compat           >=0.11.1  && <0.13
     , containers            >=0.4.0.0 && <0.7
     , HUnit                 ==1.3.1.2 || >=1.6.0.0 && <1.7
     , math-functions        ==0.1.7.0 || >=0.3.3.0 && <0.4
@@ -206,8 +206,8 @@ test-suite splitmix-dieharder
   build-depends:
       async                  >=2.2.1    && <2.3
     , base
-    , base-compat-batteries  >=0.10.5   && <0.12
-    , bytestring             >=0.9.1.8  && <0.11
+    , base-compat-batteries  >=0.10.5   && <0.13
+    , bytestring             >=0.9.1.8  && <0.12
     , deepseq
     , process                >=1.0.1.5  && <1.7
     , random
