@@ -1,6 +1,7 @@
 cabal-version:      >=1.10
 name:               splitmix
 version:            0.1.0.4
+x-revision:         1
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
@@ -102,7 +103,7 @@ library
 
     else
       cpp-options:   -DSPLITMIX_INIT_COMPAT=1
-      build-depends: time >=1.2.0.3 && <1.11
+      build-depends: time >=1.2.0.3 && <1.13
 
 source-repository head
   type:     git
@@ -169,7 +170,7 @@ test-suite splitmix-tests
 
   build-depends:
       base
-    , base-compat           >=0.11.1  && <0.12
+    , base-compat           >=0.11.1  && <0.13
     , containers            >=0.4.0.0 && <0.7
     , HUnit                 ==1.3.1.2 || >=1.6.0.0 && <1.7
     , math-functions        ==0.1.7.0 || >=0.3.3.0 && <0.4
@@ -206,8 +207,8 @@ test-suite splitmix-dieharder
   build-depends:
       async                  >=2.2.1    && <2.3
     , base
-    , base-compat-batteries  >=0.10.5   && <0.12
-    , bytestring             >=0.9.1.8  && <0.11
+    , base-compat-batteries  >=0.10.5   && <0.13
+    , bytestring             >=0.9.1.8  && <0.12
     , deepseq
     , process                >=1.0.1.5  && <1.7
     , random
@@ -228,7 +229,7 @@ test-suite splitmix-testu01
   extra-libraries:  testu01
   build-depends:
       base
-    , base-compat-batteries  >=0.10.5   && <0.12
+    , base-compat-batteries  >=0.10.5   && <0.13
     , splitmix
 
 test-suite initialization
