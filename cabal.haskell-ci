@@ -12,6 +12,23 @@ constraint-set time-1.10
   ghc: >=8.0
   constraints: time ^>=1.10
 
+constraint-set time-1.11
+  ghc: >=8.0
+  constraints: time ^>=1.11
+
+constraint-set time-1.12
+  ghc: >=8.8
+  constraints: time ^>=1.12
+  tests: True
+  run-tests: True
+
+constraint-set bytestring-0.11
+  ghcjs: False
+  ghc: >=7.4
+  constraints: bytestring ^>=0.11
+  tests: True
+  run-tests: True
+
 raw-travis:
   export CABAL
   export HC
