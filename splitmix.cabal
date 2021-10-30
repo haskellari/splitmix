@@ -1,7 +1,6 @@
 cabal-version:      >=1.10
 name:               splitmix
 version:            0.1.0.4
-x-revision:         1
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
