@@ -243,7 +243,7 @@ jobs:
         run: |
           $CABAL v2-update -v
       - name: cache (tools)
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-${{ matrix.compiler }}-tools-ece47bc9
           path: ~/.haskell-ci-tools
@@ -270,7 +270,7 @@ jobs:
           if [ $((! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90000)) -ne 0 ] ; then $CABAL --store-dir=$HOME/.haskell-ci-tools/store v2-install $ARG_COMPILER --ignore-project -j2 doctest --constraint='doctest ^>=0.20' ; fi
           if [ $((! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90000)) -ne 0 ] ; then doctest --version ; fi
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: source
       - name: initial cabal.project for sdist
@@ -312,7 +312,7 @@ jobs:
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dry-run all
           cabal-plan
       - name: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
           path: ~/.cabal/store
