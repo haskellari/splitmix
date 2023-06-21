@@ -90,7 +90,7 @@ library
   -- because it's valuable that splitmix and QuickCheck doesn't
   -- depend on about anything
 
-  if impl(ghcjs)
+  if impl(ghcjs) || arch(javascript)
     cpp-options: -DSPLITMIX_INIT_GHCJS=1
 
   else
