@@ -3,5 +3,10 @@ packages: .
 tests: True
 
 allow-newer: async-2.2.4:base
-allow-newer: hashable-1.4.0.2:base
-allow-newer: hashable-1.4.0.2:ghc-bignum
+allow-newer: async-2.2.4:hashable
+allow-newer: deepseq-1.5.0.0:base
+allow-newer: hashable-1.4.3.0:base
+allow-newer: hashable-1.4.3.0:deepseq
+allow-newer: hashable-1.4.3.0:ghc-bignum
+allow-newer: primitive-0.8.0.0:template-haskell
+allow-newer: stm-2.5.1.0:base

@@ -161,8 +161,8 @@ parseArgs (x : xs) p = do
 singleArg :: Parser a -> String -> [String] -> Either String ([String], Parser a)
 singleArg (Pure _)           x _  = Left $ "Extra argument " ++ x
 singleArg (Ap Arg p)         x xs
-    | null x || head x /= '-'     = Right (xs, fmap ($ x) p)
-    | otherwise                   = fmap2 (Ap Arg) (singleArg p x xs)
+    | null x || headMay x /= Just '-'   = Right (xs, fmap ($ x) p)
+    | otherwise                         = fmap2 (Ap Arg) (singleArg p x xs)
 singleArg (Ap f@(Flag n) p)  x xs
     | x == n                      = Right (xs, fmap ($ True) p)
     | otherwise                   = fmap2 (Ap f) (singleArg p x xs)
@@ -183,3 +183,7 @@ parserToEither (Pure x)         = pure x
 parserToEither (Ap (Flag _) p)  = parserToEither $ fmap ($ False) p
 parserToEither (Ap (Opt _ _) p) = parserToEither $ fmap ($ Nothing) p
 parserToEither (Ap Arg _)       = Left "argument required"
+
+headMay :: [a] -> Maybe a
+headMay [] = Nothing
+headMay (x:_) = Just x

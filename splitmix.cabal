@@ -80,8 +80,8 @@ library
   -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
 
   build-depends:
-      base     >=4.3     && <4.19
-    , deepseq  >=1.3.0.0 && <1.5
+      base     >=4.3     && <4.20
+    , deepseq  >=1.3.0.0 && <1.6
 
   if flag(optimised-mixer)
     cpp-options: -DOPTIMISED_MIX32=1
