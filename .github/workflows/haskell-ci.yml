@@ -312,10 +312,6 @@ jobs:
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
           allow-newer: async:base
-          allow-newer: hashable:base
-          allow-newer: hashable:bytestring
-          allow-newer: hashable:deepseq
-          allow-newer: hashable:text
           allow-newer: primitive:template-haskell
           EOF
           if $HEADHACKAGE; then
