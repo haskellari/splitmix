@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.15.20230406
+# version: 0.17.20230929
 #
-# REGENDATA ("0.15.20230406",["github","cabal.project"])
+# REGENDATA ("0.17.20230929",["github","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -37,19 +37,24 @@ jobs:
             compilerVersion: "8.4"
             setup-method: hvr-ppa
             allow-failure: false
-          - compiler: ghc-9.6.1
+          - compiler: ghc-9.8.0.20230929
             compilerKind: ghc
-            compilerVersion: 9.6.1
+            compilerVersion: 9.8.0.20230929
+            setup-method: ghcup
+            allow-failure: true
+          - compiler: ghc-9.6.3
+            compilerKind: ghc
+            compilerVersion: 9.6.3
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.4.4
+          - compiler: ghc-9.4.7
             compilerKind: ghc
-            compilerVersion: 9.4.4
+            compilerVersion: 9.4.7
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.2.5
+          - compiler: ghc-9.2.8
             compilerKind: ghc
-            compilerVersion: 9.2.5
+            compilerVersion: 9.2.8
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.0.2
@@ -138,8 +143,9 @@ jobs:
           apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common libtinfo5
           if [ "${{ matrix.setup-method }}" = ghcup ]; then
             mkdir -p "$HOME/.ghcup/bin"
-            curl -sL https://downloads.haskell.org/ghcup/0.1.19.2/x86_64-linux-ghcup-0.1.19.2 > "$HOME/.ghcup/bin/ghcup"
+            curl -sL https://downloads.haskell.org/ghcup/0.1.19.5/x86_64-linux-ghcup-0.1.19.5 > "$HOME/.ghcup/bin/ghcup"
             chmod a+x "$HOME/.ghcup/bin/ghcup"
+            "$HOME/.ghcup/bin/ghcup" config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml;
             "$HOME/.ghcup/bin/ghcup" install ghc "$HCVER" || (cat "$HOME"/.ghcup/logs/*.* && false)
             "$HOME/.ghcup/bin/ghcup" install cabal 3.10.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
             apt-get update
@@ -152,8 +158,9 @@ jobs:
             apt-get update
             if [ $((GHCJSARITH)) -ne 0 ] ; then apt-get install -y "$HCNAME" hugs libhugs-time-bundled libtestu01-0-dev ghc-8.4.4 nodejs ; else apt-get install -y "$HCNAME" hugs libhugs-time-bundled libtestu01-0-dev ; fi
             mkdir -p "$HOME/.ghcup/bin"
-            curl -sL https://downloads.haskell.org/ghcup/0.1.19.2/x86_64-linux-ghcup-0.1.19.2 > "$HOME/.ghcup/bin/ghcup"
+            curl -sL https://downloads.haskell.org/ghcup/0.1.19.5/x86_64-linux-ghcup-0.1.19.5 > "$HOME/.ghcup/bin/ghcup"
             chmod a+x "$HOME/.ghcup/bin/ghcup"
+            "$HOME/.ghcup/bin/ghcup" config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml;
             "$HOME/.ghcup/bin/ghcup" install cabal 3.10.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
           fi
         env:
@@ -169,10 +176,12 @@ jobs:
           echo "CABAL_CONFIG=$HOME/.cabal/config" >> "$GITHUB_ENV"
           HCDIR=/opt/$HCKIND/$HCVER
           if [ "${{ matrix.setup-method }}" = ghcup ]; then
-            HC=$HOME/.ghcup/bin/$HCKIND-$HCVER
+            HC=$("$HOME/.ghcup/bin/ghcup" whereis ghc "$HCVER")
+            HCPKG=$(echo "$HC" | sed 's#ghc$#ghc-pkg#')
+            HADDOCK=$(echo "$HC" | sed 's#ghc$#haddock#')
             echo "HC=$HC" >> "$GITHUB_ENV"
-            echo "HCPKG=$HOME/.ghcup/bin/$HCKIND-pkg-$HCVER" >> "$GITHUB_ENV"
-            echo "HADDOCK=$HOME/.ghcup/bin/haddock-$HCVER" >> "$GITHUB_ENV"
+            echo "HCPKG=$HCPKG" >> "$GITHUB_ENV"
+            echo "HADDOCK=$HADDOCK" >> "$GITHUB_ENV"
             echo "CABAL=$HOME/.ghcup/bin/cabal-3.10.1.0 -vnormal+nowrap" >> "$GITHUB_ENV"
           else
             HC=$HCDIR/bin/$HCKIND
@@ -214,6 +223,18 @@ jobs:
           repository hackage.haskell.org
             url: http://hackage.haskell.org/
           EOF
+          if $HEADHACKAGE; then
+          cat >> $CABAL_CONFIG <<EOF
+          repository head.hackage.ghc.haskell.org
+             url: https://ghc.gitlab.haskell.org/head.hackage/
+             secure: True
+             root-keys: 7541f32a4ccca4f97aea3b22f5e593ba2c0267546016b992dfadcd2fe944e55d
+                        26021a13b401500c8eb2761ca95c61f2d625bfef951b939a8124ed12ecf07329
+                        f76d08be13e9a61a377a85e2fb63f4c5435d40f8feb3e12eb05905edb8cdea89
+             key-threshold: 3
+          active-repositories: hackage.haskell.org, head.hackage.ghc.haskell.org:override
+          EOF
+          fi
           cat >> $CABAL_CONFIG <<EOF
           program-default-options
             ghc-options: $GHCJOBS +RTS -M3G -RTS
@@ -246,8 +267,8 @@ jobs:
       - name: install cabal-docspec
         run: |
           mkdir -p $HOME/.cabal/bin
-          curl -sL https://github.com/phadej/cabal-extras/releases/download/cabal-docspec-0.0.0.20230406/cabal-docspec-0.0.0.20230406-x86_64-linux.xz > cabal-docspec.xz
-          echo '68fa9addd5dc453d533a74a763950499d4593b1297c9a05c3ea5bd1acc04c9dd  cabal-docspec.xz' | sha256sum -c -
+          curl -sL https://github.com/phadej/cabal-extras/releases/download/cabal-docspec-0.0.0.20230517/cabal-docspec-0.0.0.20230517-x86_64-linux.xz > cabal-docspec.xz
+          echo '3b31bbe463ad4d671abbc103db49628562ec48a6604cab278207b5b6acd21ed7  cabal-docspec.xz' | sha256sum -c -
           xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
@@ -290,10 +311,16 @@ jobs:
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then echo "package splitmix" >> cabal.project ; fi
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: async-2.2.4:base
-          allow-newer: hashable-1.4.0.2:base
-          allow-newer: hashable-1.4.0.2:ghc-bignum
+          allow-newer: async:base
+          allow-newer: hashable:base
+          allow-newer: hashable:bytestring
+          allow-newer: hashable:deepseq
+          allow-newer: hashable:text
+          allow-newer: primitive:template-haskell
           EOF
+          if $HEADHACKAGE; then
+          echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1,/g')" >> cabal.project
+          fi
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(splitmix)$/; }' >> cabal.project.local
           cat cabal.project
           cat cabal.project.local
@@ -349,22 +376,37 @@ jobs:
       - name: prepare for constraint sets
         run: |
           rm -f cabal.project.local
+      - name: constraint set bytestring-0.12
+        run: |
+          if [ $((! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.12' all --dry-run ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then cabal-plan topo | sort ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.12' --dependencies-only -j2 all ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.12' all ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 80200)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.12' all ; fi
       - name: constraint set bytestring-0.11
         run: |
-          if [ $((! GHCJSARITH && HCNUMVER >= 70400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' --dependencies-only -j2 all ; fi
-          if [ $((! GHCJSARITH && HCNUMVER >= 70400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' all ; fi
-          if [ $((! GHCJSARITH && HCNUMVER >= 70400)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' all ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' all --dry-run ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then cabal-plan topo | sort ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' --dependencies-only -j2 all ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' all ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='bytestring ^>=0.11' all ; fi
       - name: constraint set time-1.12
         run: |
+          if [ $((! GHCJSARITH && HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='time ^>=1.12' all --dry-run ; fi
+          if [ $((! GHCJSARITH && HCNUMVER >= 80800)) -ne 0 ] ; then cabal-plan topo | sort ; fi
           if [ $((! GHCJSARITH && HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='time ^>=1.12' --dependencies-only -j2 all ; fi
           if [ $((! GHCJSARITH && HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='time ^>=1.12' all ; fi
           if [ $((! GHCJSARITH && HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER --enable-tests --disable-benchmarks --constraint='time ^>=1.12' all ; fi
       - name: constraint set time-1.11
         run: |
+          if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.11' all --dry-run ; fi
+          if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then cabal-plan topo | sort ; fi
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.11' --dependencies-only -j2 all ; fi
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.11' all ; fi
       - name: constraint set time-1.10
         run: |
+          if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.10' all --dry-run ; fi
+          if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then cabal-plan topo | sort ; fi
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.10' --dependencies-only -j2 all ; fi
           if [ $((GHCJSARITH || ! GHCJSARITH && HCNUMVER >= 80000 && HCNUMVER < 90400)) -ne 0 ] ; then $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --constraint='time ^>=1.10' all ; fi
       - name: save cache

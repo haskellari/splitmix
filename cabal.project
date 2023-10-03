@@ -2,6 +2,9 @@ packages: .
 
 tests: True
 
-allow-newer: async-2.2.4:base
-allow-newer: hashable-1.4.0.2:base
-allow-newer: hashable-1.4.0.2:ghc-bignum
+allow-newer: async:base
+allow-newer: hashable:base
+allow-newer: hashable:bytestring
+allow-newer: hashable:deepseq
+allow-newer: hashable:text
+allow-newer: primitive:template-haskell
