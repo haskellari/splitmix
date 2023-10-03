@@ -4,6 +4,7 @@ docspec: >=7.6
 benchmarks: >=7.4 && <9
 ghcjs-tests: True
 apt: hugs libhugs-time-bundled libtestu01-0-dev
+head-hackage: False
 
 constraint-set time-1.10
   ghc: >=8.0 && <9.4
@@ -21,8 +22,15 @@ constraint-set time-1.12
 
 constraint-set bytestring-0.11
   ghcjs: False
-  ghc: >=7.4
+  ghc: >=7.4 && <9.7
   constraints: bytestring ^>=0.11
+  tests: True
+  run-tests: True
+
+constraint-set bytestring-0.12
+  ghcjs: False
+  ghc: >=8.2
+  constraints: bytestring ^>=0.12
   tests: True
   run-tests: True
 
