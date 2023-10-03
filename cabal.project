@@ -3,8 +3,4 @@ packages: .
 tests: True
 
 allow-newer: async:base
-allow-newer: hashable:base
-allow-newer: hashable:bytestring
-allow-newer: hashable:deepseq
-allow-newer: hashable:text
 allow-newer: primitive:template-haskell
