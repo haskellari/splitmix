@@ -1,6 +1,3 @@
 packages: .
 
 tests: True
-
-allow-newer: async:base
-allow-newer: primitive:template-haskell
