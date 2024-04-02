@@ -1,6 +1,7 @@
 cabal-version:      >=1.10
 name:               splitmix
 version:            0.1.0.5
+x-revision:         1
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
@@ -47,9 +48,10 @@ tested-with:
      || ==8.10.4
      || ==9.0.2
      || ==9.2.8
-     || ==9.4.7
-     || ==9.6.3
-     || ==9.8.1
+     || ==9.4.8
+     || ==9.6.4
+     || ==9.8.2
+     || ==9.10.1
   , GHCJS ==8.4
 
 extra-source-files:
@@ -80,7 +82,7 @@ library
   -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
 
   build-depends:
-      base     >=4.3     && <4.20
+      base     >=4.3     && <4.21
     , deepseq  >=1.3.0.0 && <1.6
 
   if flag(optimised-mixer)
@@ -119,7 +121,7 @@ benchmark comparison
   main-is:          Bench.hs
   build-depends:
       base
-    , containers  >=0.4.2.1 && <0.7
+    , containers  >=0.4.2.1 && <0.8
     , criterion   >=1.1.0.0 && <1.7
     , random
     , splitmix
@@ -175,7 +177,7 @@ test-suite splitmix-tests
   build-depends:
       base
     , base-compat           >=0.11.1  && <0.14
-    , containers            >=0.4.0.0 && <0.7
+    , containers            >=0.4.0.0 && <0.8
     , HUnit                 ==1.3.1.2 || >=1.6.0.0 && <1.7
     , math-functions        ==0.1.7.0 || >=0.3.3.0 && <0.4
     , splitmix
