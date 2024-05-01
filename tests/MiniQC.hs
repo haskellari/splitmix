@@ -5,8 +5,6 @@ module MiniQC where
 import Control.Monad                  (ap)
 import Data.Int                       (Int32, Int64)
 import Data.Word                      (Word32, Word64)
-import Prelude ()
-import Prelude.Compat
 import Test.Framework.Providers.API   (Test, TestName)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit                     (assertFailure)

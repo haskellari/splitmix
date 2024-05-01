@@ -5,14 +5,8 @@
 --
 -- You __really don't want to use this one__.
 --
---  Note: This module supports all GHCs since GHC-7.0.4,
---  but GHC-7.0 and GHC-7.2 have slow implementation, as there
---  are no native 'popCount'.
---
 {-# LANGUAGE CPP         #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-#endif
 module System.Random.SplitMix32 (
     SMGen,
     nextWord32,
@@ -46,7 +40,7 @@ import System.IO.Unsafe      (unsafePerformIO)
 
 import System.Random.SplitMix.Init
 
-#if defined(__HUGS__) || !MIN_VERSION_base(4,8,0)
+#if defined(__HUGS__)
 import Data.Word (Word)
 #endif
 

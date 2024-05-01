@@ -22,14 +22,8 @@
 --  (the mixing functions are easily inverted, and two successive outputs
 --  suffice to reconstruct the internal state).
 --
---  Note: This module supports all GHCs since GHC-7.0.4,
---  but GHC-7.0 and GHC-7.2 have slow implementation, as there
---  are no native 'popCount'.
---
 {-# LANGUAGE CPP          #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy  #-}
-#endif
 module System.Random.SplitMix (
     SMGen,
     nextWord64,
@@ -62,7 +56,7 @@ import System.IO.Unsafe      (unsafePerformIO)
 
 import System.Random.SplitMix.Init
 
-#if defined(__HUGS__) || !MIN_VERSION_base(4,8,0)
+#if defined(__HUGS__)
 import Data.Word (Word)
 #endif
 
