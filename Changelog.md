@@ -1,3 +1,7 @@
+# 0.1.0.5
+
+- Drop support for GHCs prior 8.6.5
+
 # 0.1.0.4
 
 - Add TestU01 test-suite

@@ -1,8 +1,6 @@
 branches: master
-doctest: <9
-docspec: >=7.6
-benchmarks: >=7.4 && <9
-ghcjs-tests: True
+docspec: True
+benchmarks: False
 apt: hugs libhugs-time-bundled libtestu01-0-dev
 head-hackage: False
 
@@ -33,8 +31,3 @@ constraint-set bytestring-0.12
   constraints: bytestring ^>=0.12
   tests: True
   run-tests: True
-
-raw-travis:
-  export CABAL
-  export HC
-  if [ ! $GHCJS ]; then (cd ${PKGDIR_splitmix} && sh test-hugs.sh); fi

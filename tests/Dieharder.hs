@@ -3,9 +3,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
-import Prelude ()
-import Prelude.Compat
-
 import Control.Concurrent.QSem
 import Control.DeepSeq         (force)
 import Control.Monad           (when)
