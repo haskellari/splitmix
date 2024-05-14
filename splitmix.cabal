@@ -92,7 +92,11 @@ library
         c-sources: cbits-win/init.c
 
       else
-        c-sources: cbits-unix/init.c
+        if arch(wasm32)
+          c-sources: cbits-wasi/init.c
+
+        else
+          c-sources: cbits-unix/init.c
 
     else
       cpp-options:   -DSPLITMIX_INIT_COMPAT=1
@@ -225,7 +229,9 @@ test-suite splitmix-testu01
 test-suite initialization
   default-language: Haskell2010
   type:             exitcode-stdio-1.0
-  ghc-options:      -Wall -threaded -rtsopts
+  ghc-options:      -Wall -rtsopts
+  if !os(wasi)
+    ghc-options:    -threaded
   hs-source-dirs:   tests
   main-is:          Initialization.hs
   build-depends:

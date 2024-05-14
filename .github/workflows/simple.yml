@@ -44,3 +44,29 @@ jobs:
 
       - name: Test
         run: cabal test all --enable-tests --test-show-details=direct
+  wasi:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc: ['9.6', '9.8', '9.10']
+      fail-fast: false
+    steps:
+    - name: setup-ghc-wasm32-wasi
+      run: |
+        cd $(mktemp -d)
+        curl -L https://gitlab.haskell.org/ghc/ghc-wasm-meta/-/archive/$GHC_WASM_META_REV/ghc-wasm-meta.tar.gz | tar xz --strip-components=1
+        ./setup.sh
+        ~/.ghc-wasm/add_to_github_path.sh
+      env:
+        GHC_WASM_META_REV: 00304b294d10eacedbb7c4a9a034ff89fc198a5a
+        FLAVOUR: ${{ matrix.ghc }}
+    - uses: actions/checkout@v4
+    - name: Build
+      run: |
+        wasm32-wasi-cabal build splitmix splitmix:test:examples splitmix:test:initialization
+    - name: Test
+      run: |
+        for test in examples initialization; do
+          echo --- Running test $test ---
+          wasmtime $(wasm32-wasi-cabal list-bin splitmix:test:$test)
+        done
