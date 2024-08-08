@@ -2,6 +2,5 @@ packages: .
 
 tests: True
 
-allow-newer: async-2.2.5:base
-allow-newer: hashable-1.4.4.0:base
-allow-newer: hashable-1.4.4.0:containers
+if arch(javascript)
+  extra-packages: ghci

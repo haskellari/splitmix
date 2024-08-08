@@ -6,7 +6,7 @@ module System.Random.SplitMix.Init (
 
 import Data.Word (Word64)
 
-#if defined(SPLITMIX_INIT_GHCJS) && __GHCJS__
+#if defined(SPLITMIX_INIT_GHCJS) && (__GHCJS__ || defined(javascript_HOST_ARCH))
 
 import Data.Word (Word32)
 
@@ -26,12 +26,17 @@ import System.CPUTime (cpuTimePrecision, getCPUTime)
 
 initialSeed :: IO Word64
 
-#if defined(SPLITMIX_INIT_GHCJS) && __GHCJS__
+#if defined(SPLITMIX_INIT_GHCJS) && (__GHCJS__ || defined(javascript_HOST_ARCH))
 
 initialSeed = fmap fromIntegral initialSeedJS
 
 foreign import javascript
+#if __GHCJS__
     "$r = Math.floor(Math.random()*0x100000000);"
+#else
+    -- defined(javascript_HOST_ARCH)
+    "(() => { return Math.floor(Math.random()*0x100000000); })"
+#endif
     initialSeedJS :: IO Word32
 
 #else
@@ -56,3 +61,4 @@ initialSeed =  do
 
 #endif
 #endif
+
