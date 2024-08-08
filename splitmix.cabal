@@ -115,6 +115,8 @@ benchmark comparison
     , random
     , splitmix
     , tf-random   >=0.5     && <0.6
+  if arch(javascript)
+    buildable: False
 
 benchmark simple-sum
   type:             exitcode-stdio-1.0
@@ -221,6 +223,8 @@ test-suite splitmix-testu01
       base
     , base-compat-batteries  >=0.10.5 && <0.14
     , splitmix
+  if arch(javascript)
+    buildable: False
 
 test-suite initialization
   default-language: Haskell2010
