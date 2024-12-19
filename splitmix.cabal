@@ -39,9 +39,10 @@ tested-with:
      || ==9.0.2
      || ==9.2.8
      || ==9.4.8
-     || ==9.6.4
-     || ==9.8.2
+     || ==9.6.6
+     || ==9.8.4
      || ==9.10.1
+     || ==9.11.1
 
 extra-source-files:
   Changelog.md
@@ -71,7 +72,7 @@ library
   -- ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
 
   build-depends:
-      base     >=4.12.0.0 && <4.21
+      base     >=4.12.0.0 && <4.22
     , deepseq  >=1.4.4.0  && <1.6
 
   if flag(optimised-mixer)
@@ -96,7 +97,7 @@ library
 
     else
       cpp-options:   -DSPLITMIX_INIT_COMPAT=1
-      build-depends: time >=1.2.0.3 && <1.13
+      build-depends: time >=1.2.0.3 && <1.15
 
 source-repository head
   type:     git
@@ -219,7 +220,7 @@ test-suite splitmix-testu01
   extra-libraries:  testu01
   build-depends:
       base
-    , base-compat-batteries  >=0.10.5 && <0.14
+    , base-compat-batteries  >=0.10.5 && <0.15
     , splitmix
 
 test-suite initialization
