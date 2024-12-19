@@ -1,6 +1,7 @@
-# 0.1.0.5
+# 0.1.1
 
 - Drop support for GHCs prior 8.6.5
+- Support GHC-9.12
 
 # 0.1.0.4
 
