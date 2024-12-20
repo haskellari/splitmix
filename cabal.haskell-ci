@@ -13,7 +13,7 @@ constraint-set time-1.11
   constraints: time ^>=1.11
 
 constraint-set time-1.12
-  ghc: >=8.8
+  ghc: >=8.8 && <9.12
   constraints: time ^>=1.12
   tests: True
   run-tests: True
