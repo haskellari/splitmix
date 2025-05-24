@@ -75,7 +75,7 @@ import Control.DeepSeq (NFData (..))
 
 -- | SplitMix generator state.
 data SMGen = SMGen !Word64 !Word64 -- seed and gamma; gamma is odd
-  deriving Show
+  deriving (Eq, Show)
 
 #ifndef __HUGS__
 instance NFData SMGen where
