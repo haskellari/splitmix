@@ -1,3 +1,7 @@
+# 0.1.2
+
+- Use `getentropy` for initialisation on unix-like systems (i.e. not Windows).
+
 # 0.1.1
 
 - Drop support for GHCs prior 8.6.5
