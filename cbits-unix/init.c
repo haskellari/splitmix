@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <unistd.h>
 
-/* for macos */
-#ifdef __APPLE__
+/* for macos and android */
+#if defined(__APPLE__) || defined(__BIONIC__)
 #include <sys/random.h>
 #endif
 
