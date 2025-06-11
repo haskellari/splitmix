@@ -1,10 +1,6 @@
 #include <stdint.h>
 #include <unistd.h>
-
-/* for macos */
-#ifdef __APPLE__
 #include <sys/random.h>
-#endif
 
 uint64_t splitmix_init() {
 	uint64_t result;
