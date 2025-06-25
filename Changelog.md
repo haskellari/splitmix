@@ -1,3 +1,9 @@
+# 0.1.3
+
+- Use system specific entropy/randomess sources to initialise the default generator.
+  Specifically `SecRandomCopyBytes` on Apple platforms and
+  `RtlGenRandom` on Windows.
+
 # 0.1.2
 
 - Use `getentropy` for initialisation on unix-like systems (i.e. not Windows).
