@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               splitmix
-version:            0.1.3
+version:            0.1.3.1
 synopsis:           Fast Splittable PRNG
 description:
   Pure Haskell implementation of SplitMix described in
@@ -95,8 +95,8 @@ library
         c-sources: cbits-win/init.c
 
       elif (os(osx) || os(ios))
-        c-sources: cbits-apple/init.c
-        ld-options: -framework Security
+        c-sources:  cbits-apple/init.c
+        frameworks: Security
 
       else
         c-sources: cbits-unix/init.c
@@ -238,4 +238,15 @@ test-suite initialization
   build-depends:
     , base
     , HUnit     >=1.6.0.0 && <1.7
+    , splitmix
+
+test-suite splitmix-th-test
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  ghc-options:      -Wall -threaded -rtsopts
+  hs-source-dirs:   tests
+  main-is:          splitmix-th-test.hs
+  build-depends:
+    , base
+    , template-haskell
     , splitmix
