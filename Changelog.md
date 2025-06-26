@@ -1,3 +1,8 @@
+# 0.1.3.1
+
+- Fix linking issue `symbol not found in flat namespace '_kSecRandomDefault'`
+  when using splitmix in TH on macOS.
+
 # 0.1.3
 
 - Use system specific entropy/randomess sources to initialise the default generator.
