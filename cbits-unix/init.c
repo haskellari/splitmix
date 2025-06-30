@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <unistd.h>
-#include <sys/random.h>
 
 uint64_t splitmix_init() {
 	uint64_t result;
