@@ -6,3 +6,7 @@ cabal.project.local
 bench.html
 splitmix-hugs
 hugs.output
+
+# nix
+result
+result-*

@@ -34,3 +34,20 @@ generate-mix32 :
 doctest :
 	perl -i -e 'while (<ARGV>) { print unless /package-id base-compat-\d+(\.\d+)*/; }' .ghc.environment.*
 	doctest src
+
+native:
+	nix-build -A native.splitmix
+
+freebsd:
+	nix-build -A freebsd.splitmix
+
+android:
+	nix-build -A android.splitmix
+
+js:
+	nix-build -A js.splitmix
+
+wasm:
+	nix shell \
+	  'gitlab:haskell-wasm/ghc-wasm-meta/7927129e42bcd6a54b9e06e26455803fa4878261?host=gitlab.haskell.org' \
+	  --command sh -c "wasm32-wasi-cabal update && wasm32-wasi-cabal test all --ghc-options='-single-threaded' --test-wrapper=wasmtime"
