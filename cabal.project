@@ -5,3 +5,10 @@ tests: True
 allow-newer: async-2.2.5:base
 allow-newer: hashable-1.4.4.0:base
 allow-newer: hashable-1.4.4.0:containers
+
+-- Due to error when building 'splitmix-tests': undefined symbol: gethostname
+if arch(wasm32)
+  source-repository-package
+    type: git
+    location: https://github.com/haskell-wasm/hostname
+    tag: 8d110f03b3117af233683ac90b125fcfc767a2ef
