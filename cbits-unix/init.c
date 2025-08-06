@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <unistd.h>
+#ifndef __OpenBSD__ // OpenBSD does not use sys/random.h.
 #include <sys/random.h>
+#endif
 
 uint64_t splitmix_init() {
 	uint64_t result;
