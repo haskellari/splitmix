@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.19.20250916
+# version: 0.19.20250917
 #
-# REGENDATA ("0.19.20250916",["github","cabal.project"])
+# REGENDATA ("0.19.20250917",["github","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -18,6 +18,9 @@ on:
     branches:
       - master
   pull_request:
+    branches:
+      - master
+  merge_group:
     branches:
       - master
 jobs:
@@ -233,6 +236,7 @@ jobs:
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "package splitmix" >> cabal.project ; fi
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
           cat >> cabal.project <<EOF
+          allow-newer: tagged-0.8.9:template-haskell
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(splitmix)$/; }' >> cabal.project.local
           cat cabal.project
