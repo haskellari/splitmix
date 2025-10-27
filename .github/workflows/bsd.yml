@@ -80,3 +80,39 @@ jobs:
           cabal build all --enable-tests --dry-run
           cabal build all --enable-tests
           cabal test all --enable-tests --test-show-details=direct
+
+  openbsd:
+    name: OpenBSD
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Test in OpenBSD
+      id: test
+      uses: vmactions/openbsd-vm@v1
+      with:
+        release: "7.8"
+        usesh: true
+        prepare: |
+          /usr/sbin/pkg_add ghc cabal-install
+
+        run: |
+          cd $GITHUB_WORKSPACE;
+          pwd
+          ls -lah
+          whoami
+          env
+          /sbin/sysctl hw.model
+          /sbin/sysctl hw.ncpu
+          /sbin/sysctl hw.physmem
+          /sbin/sysctl hw.usermem
+          /usr/bin/vmstat
+
+          ghc --version
+          cabal --version
+
+          cabal update
+          cabal build all --enable-tests --dry-run
+          cabal build all --enable-tests
+          cabal test all --enable-tests --test-show-details=direct
